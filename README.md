@@ -1,58 +1,88 @@
-# Tô Dentro!
+<div align="center">
 
-Plataforma de orientação universitária para explorar instituições, campi, cursos, formas de ingresso e oportunidades no ensino superior.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://to-dentro.github.io/to-dentro/assets/images/brand/logo-dark-mode.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://to-dentro.github.io/to-dentro/assets/images/brand/logo.svg">
+  <img src="https://to-dentro.github.io/to-dentro/assets/images/brand/logo.svg" alt="Logo Tô Dentro!" width="350">
+</picture>
 
-[Acessar o Tô Dentro!](https://to-dentro.github.io/app/)
+### Seu futuro tem um lugar para começar.
 
-## Executar localmente
+[![Conheça o aplicativo](https://img.shields.io/badge/Conhe%C3%A7a%20o%20aplicativo-8B83B6?style=for-the-badge&logoColor=white)](https://to-dentro.github.io/app/)
 
-Abra a pasta em um servidor local, como o Live Server do VS Code, e acesse `index.html`. O projeto usa HTML, CSS e JavaScript puro, sem instalação de dependências ou etapa de build.
+</div>
 
-Use HTTP local ou HTTPS: os módulos JavaScript e as integrações não devem ser executados por `file://`. É necessária conexão para Firebase, Google Fonts, Material Symbols e o mapa.
+---
 
-O aplicativo prioriza o celular. Em tablets e desktops, o conteúdo fica centralizado, as listas aproveitam a largura disponível e a navegação permanece acessível. A partir de 1024 px, uma apresentação recomenda o celular em cada carregamento, inclusive ao atualizar ou abrir outra página. Depois de fechá-la, o aviso no topo permanece visível. As adaptações ficam em `src/styles/layout/responsive.css`.
+## 👩‍💻 Integrantes do grupo
 
-## Estrutura
+- **Ana Luíza Machado de Andrade**
+- **Ana Luiza Marchiori Rodrigues**
+- **Barbara Gonçalves de Araujo**
+- **Beatriz Gagliano Silva**
+- **Caroline Fantinate de Assunção**
 
-```text
-index.html          Página inicial
-assets/             Marca e imagens utilizadas pelo aplicativo
-config/             Configuração pública do Firebase
-services/           Autenticação, perfil, preferências e consultas ao banco
-src/
-  data/             Catálogo, adaptadores e dados locais utilizados pelas telas
-  pages/            Páginas HTML
-  scripts/          Componentes, navegação e lógica das páginas
-  styles/           Reset, tokens, estilos globais e estilos das telas
-docs/
-  firebase-setup.md Configuração e estrutura do Firebase
-firestore.rules     Regras de acesso para publicação no Firebase
-```
+---
 
-## Dados e funcionalidades
+## 💡 Sobre o projeto
 
-O catálogo de instituições, campi, cursos cadastrados, notas e datas de ingresso é consultado no Firestore. Algumas áreas ainda utilizam dados de demonstração, mantidos em `src/data/` porque são usados pela interface.
+O **Tô Dentro!** é uma plataforma educacional criada para ajudar estudantes a conhecer suas possibilidades de ingresso no **ensino superior público**.
 
-Cadastro e login utilizam Firebase Authentication. Perfil e preferências são salvos no Firestore. As preferências são compartilhadas entre cadastro, perfil e busca. Salvos e lembretes pessoais utilizam o armazenamento local do navegador separado por usuário.
+Este repositório contém o **aplicativo web do Tô Dentro!**, que reúne recursos para explorar universidades e cursos, desenvolver o autoconhecimento e planejar a jornada universitária em um só lugar.
 
-O mapa usa Leaflet e OpenStreetMap. O calendário apresenta datas cadastradas e diferencia previsões de eventos com dia definido. A exportação para o calendário do celular ainda não está implementada.
+Nossa proposta é tornar esse processo **mais acessível, intuitivo e acolhedor**, oferecendo informações e ferramentas que apoiem decisões conscientes sobre o futuro.
 
-## Configuração do Firebase
+---
 
-A configuração pública do aplicativo Web fica em `config/firebase.js`. Ative Authentication com E-mail/Senha, configure os domínios autorizados e crie o Firestore. Publique o conteúdo de `firestore.rules` no console do Firebase.
+## 🌐 Conheça o Tô Dentro!
 
-Consulte [a configuração do Firebase](docs/firebase-setup.md). Chaves administrativas, planilhas e ferramentas de importação não fazem parte dos arquivos do site.
+**Acesse o aplicativo web**
 
-## Padrões do projeto
+Explore instituições, conheça cursos e descubra caminhos para sua trajetória acadêmica.
 
-- Nomes de arquivos e classes em minúsculas, com hífens e sem underline duplo.
-- Componentes compartilhados para evitar repetição de código.
-- Cores, tipografia e espaçamentos em `src/styles/base/tokens.css`.
-- Fontes e ícones importados de forma centralizada.
-- Layouts responsivos, HTML semântico e navegação por teclado.
+🔗 **[Explorar o aplicativo](https://to-dentro.github.io/app/)**
 
-## Tecnologias
+**Conheça o projeto**
 
-HTML5, CSS3, JavaScript, Firebase Authentication, Cloud Firestore, Leaflet, OpenStreetMap, Google Fonts e Material Symbols.
+Saiba mais sobre a proposta, os valores e a equipe responsável pelo Tô Dentro!.
 
-Projeto desenvolvido para fins acadêmicos.
+🔗 **[Visitar o website](https://to-dentro.github.io/to-dentro/)**
+
+---
+
+## ✨ Funcionalidades da plataforma
+
+- **Universidades:** explore instituições, campi e informações relevantes;
+- **Cursos e áreas de formação:** descubra possibilidades de graduação e campos de interesse;
+- **Mapa de instituições:** visualize a localização de universidades e campi;
+- **Teste vocacional:** reflita sobre seus interesses, habilidades e afinidades;
+- **Notas e formas de ingresso:** compare informações sobre alternativas de acesso;
+- **Calendário de ingresso:** acompanhe etapas importantes e organize seu planejamento;
+- **Oportunidades e apoio:** conheça programas estudantis e espaços de comunidade.
+
+---
+
+## 🎯 Objetivo do aplicativo
+
+O aplicativo web foi desenvolvido para:
+
+- Facilitar o acesso a informações sobre o ensino superior público;
+- Incentivar o autoconhecimento e a exploração de interesses profissionais;
+- Apoiar a pesquisa de cursos, universidades e formas de ingresso;
+- Reunir ferramentas úteis para o planejamento acadêmico;
+- Tornar a jornada de escolha universitária mais clara e acessível.
+
+---
+
+## 🛠️ Tecnologias e ferramentas
+
+- **HTML5** — estruturação das páginas e conteúdos;
+- **CSS3** — estilização e responsividade;
+- **JavaScript** — interatividade e recursos dinâmicos;
+- **Git e GitHub** — versionamento de código e colaboração no desenvolvimento.
+
+---
+
+## 📄 Licença
+
+Este projeto foi desenvolvido para fins acadêmicos como parte do **Trabalho Interdisciplinar**.
