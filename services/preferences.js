@@ -24,24 +24,14 @@ export function signupPreferences({ institutionType, cityIds, modeIds, periodIds
 
 export function preferencesToFilters(input, catalog) {
   const preferences = normalizePreferences(input);
-  const params = new URLSearchParams({ return: 'perfil' });
+  const params = new URLSearchParams();
   const append = (name, values) => { if (!values.length) params.set(name, ''); else values.forEach(value => params.append(name, value)); };
   append('city', preferences.cityIds);
   append('type', preferences.institutionTypes.map(value => value === 'privada' ? 'particular' : value));
   append('mode', preferences.modeIds);
+  append('period', preferences.periodIds);
   append('admission', preferences.admissionMethodIds);
   append('course', preferences.courseIds.map(id => catalog.getCourse(id)?.value).filter(Boolean));
   append('area', preferences.areaIds);
   return params;
-}
-
-export function preferencesFromFilters(params, previous, catalog) {
-  const values = name => params.getAll(name).flatMap(value => value.split(',')).filter(Boolean);
-  return normalizePreferences({
-    ...normalizePreferences(previous),
-    institutionTypes: values('type').map(value => value === 'particular' ? 'privada' : value),
-    cityIds: values('city'), modeIds: values('mode'), admissionMethodIds: values('admission'),
-    courseIds: values('course').map(value => catalog.getCourse(value)?.id).filter(Boolean), areaIds: values('area'),
-    discoveringCourses: false,
-  });
 }

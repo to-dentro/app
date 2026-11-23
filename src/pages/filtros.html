@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filtros e preferências | Tô Dentro</title>
+    <title>Filtros da busca | Tô Dentro</title>
+    <link rel="icon" type="image/png" href="../../assets/images/brand/icon.png?v=2">
+    <link rel="icon" type="image/png" href="../../assets/images/brand/icon-dark-mode.png?v=2" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="stylesheet" href="../styles/pages/filtros.css">
     <script defer src="../scripts/services/auth.js"></script>
@@ -18,18 +20,17 @@
                 aria-label="Voltar à busca">
                 <span class="material-symbols-outlined" aria-hidden="true">arrow_back_ios_new</span>
             </a>
-            <span>Filtros e preferências</span>
+            <span>Filtros da busca</span>
         </header>
 
         <h1>A busca do seu jeito.</h1>
-        <p class="preferences-intro">Combine o que é importante para você.</p>
+        <p class="preferences-intro">Ajuste os critérios desta busca.</p>
 
         <form id="preferences-form" action="./buscar-universidades.html" method="get">
             <fieldset class="preference-card">
                 <legend>Cidade</legend>
                 <div class="preference-options">
-                    <label class="preference-option"><input type="checkbox" name="city" value="sao-paulo"
-                            checked><span>São Paulo</span></label>
+                    <label class="preference-option"><input type="checkbox" name="city" value="sao-paulo"><span>São Paulo</span></label>
                     <label class="preference-option"><input type="checkbox" name="city"
                             value="campinas"><span>Campinas</span></label>
                 </div>
@@ -39,7 +40,7 @@
                 <legend>Tipo de instituição</legend>
                 <div class="preference-options">
                     <label class="preference-option">
-                        <input type="checkbox" name="type" value="publica" checked><span>Pública</span>
+                        <input type="checkbox" name="type" value="publica"><span>Pública</span>
                     </label>
                     <label class="preference-option">
                         <input type="checkbox" name="type" value="particular"><span>Particular</span>
@@ -85,22 +86,26 @@
                 <legend>Curso</legend>
                 <div class="course-selects">
                     <label class="course-select" for="course-choice">Curso
-                        <select id="course-choice" name="course" aria-describedby="course-help">
+                        <select id="course-choice" name="course" multiple size="5" aria-describedby="course-help">
                             <option value="">Todos os cursos</option>
                         </select>
                     </label>
                     <label class="course-select" for="course-area">Área
-                        <select id="course-area" name="area">
+                        <select id="course-area" name="area" multiple size="4">
                             <option value="">Todas as áreas</option>
                         </select>
                     </label>
                 </div>
-                <p class="course-help" id="course-help">Escolha uma área para ver os cursos correspondentes.</p>
+                <p class="course-help" id="course-help">Você pode combinar áreas e cursos.</p>
+            </fieldset>
+            <fieldset class="preference-card">
+                <legend>Turno</legend>
+                <div class="preference-options" id="filter-periods"></div>
             </fieldset>
             <input type="hidden" name="busca" id="preserved-query">
             <input type="hidden" name="sort" id="preserved-sort">
             <div class="preferences-actions">
-                <button class="button button-ink" type="submit">Aplicar filtros</button>
+                <button class="button button-ink" type="submit" disabled>Aplicar filtros</button>
                 <button class="button button-yellow" id="clear-filters" type="button">Limpar filtros</button>
             </div>
         </form>

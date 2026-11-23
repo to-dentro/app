@@ -2,75 +2,116 @@
   'use strict';
   if (window.ToDentroCoursesReady) await window.ToDentroCoursesReady;
   if (window.ToDentroUniversitiesReady) await window.ToDentroUniversitiesReady;
+  if (window.ToDentroCampusesReady) await window.ToDentroCampusesReady;
   await window.ToDentroAuth.ready;
-  let params = new URLSearchParams(location.search);
-  const root = new URL('../../', location.href);
-  let shared;
-  const connected = window.ToDentroAuth.isAuthenticated();
-  const reportError = error => {
-    let notice = document.querySelector('#preferences-sync-status');
-    if (!notice) { notice = document.createElement('p'); notice.id = 'preferences-sync-status'; notice.setAttribute('role', 'alert'); document.querySelector('main').prepend(notice); }
-    notice.textContent = 'Não foi possível carregar ou salvar suas preferências. Confira a conexão e tente novamente.';
-  };
-  if (connected) {
+
+  const fields = ['city', 'type', 'course', 'mode', 'area', 'period', 'admission'];
+  const params = new URLSearchParams(location.search);
+  const catalog = window.ToDentroData;
+  const note = document.querySelector('#search-filter-note');
+  const searchHasFilters = fields.some(name => params.has(name)) || params.has('region');
+  if (window.ToDentroAuth.isAuthenticated() && !searchHasFilters) {
     try {
-      shared = await import(new URL('services/search-preferences.js', root).href);
-      const loaded = await shared.loadSearchPreferences(params, window.ToDentroData);
-      params = loaded.params;
-    } catch (error) { reportError(error); return; }
+      const root = new URL('../../', location.href);
+      const { loadSearchPreferences } = await import(new URL('services/search-preferences.js', root).href);
+      const initial = await loadSearchPreferences(params, catalog);
+      for (const name of fields) {
+        for (const value of initial.getAll(name)) params.append(name, value);
+      }
+      if (fields.some(name => params.getAll(name).some(Boolean))) {
+        note.textContent = 'Filtros iniciais do seu perfil. Você pode ajustá-los nesta busca.';
+        note.hidden = false;
+      }
+    } catch {
+      note.textContent = 'Suas preferências não carregaram. Você ainda pode usar os filtros da busca.';
+      note.hidden = false;
+    }
   }
+  if (!params.has('city') && params.has('region')) {
+    params.set('city', params.get('region') === 'sp' ? 'sao-paulo' : params.get('region'));
+  }
+  const filters = Object.fromEntries(fields.map(name => [name, params.getAll(name).flatMap(value => value.split(',')).filter(Boolean)]));
+  filters.type = filters.type.map(value => value === 'privada' ? 'particular' : value);
+
   const query = document.querySelector('#university-query');
   const list = document.querySelector('.university-results-list');
+  const count = document.querySelector('#results-count');
+  const sort = document.querySelector('#sort-universities');
+  const clear = document.querySelector('#clear-search-filters');
+  const badge = document.querySelector('#active-filter-count');
+  const filtersLink = document.querySelector('#open-filters');
+  const collator = new Intl.Collator('pt-BR');
+  const normalize = value => (value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
+  const liveCampuses = new Map();
+  for (const campus of window.ToDentroCampuses || []) {
+    if (!liveCampuses.has(campus.universityId)) liveCampuses.set(campus.universityId, []);
+    liveCampuses.get(campus.universityId).push(campus);
+  }
+
   list.replaceChildren();
-  const cards = window.ToDentroUniversities.map(university => {
+  const institutions = window.ToDentroUniversities.map(university => {
     const card = document.createElement('td-university-card');
     card.setAttribute('university-id', university.id);
     card.setAttribute('variant', 'featured');
-    list.append(card);
     card.render();
-    return card;
+    list.append(card);
+
+    const campuses = liveCampuses.get(university.id) || catalog.getCampuses(university.id);
+    const cities = [...new Set([university.city, ...campuses.map(campus => campus.city)].map(normalize).filter(Boolean))];
+    const offerings = catalog.getOfferings({ universityId: university.id });
+    const courses = university.courses.map(normalize);
+    return {
+      card, university, cities, courses,
+      areas: courses.map(name => catalog.getCourse(name, university.id)?.area),
+      modes: [university.mode, ...offerings.map(offer => offer.modeId)],
+      periods: offerings.length ? offerings.map(offer => offer.periodId) : university.periods,
+      names: [normalize(university.name), normalize(university.acronym)].filter(Boolean),
+    };
   });
-  const count = document.querySelector('#results-count');
-  const sort = document.querySelector('#sort-universities');
-  const regionChip = document.querySelector('[data-filter="sp"]');
-  const typeChip = document.querySelector('[data-filter="public"]');
-  const filtersLink = document.querySelector('#open-filters');
 
-  const filters = {
-    city: params.has('city') ? params.getAll('city').join(',') : params.has('region') ? (params.get('region') === 'sp' ? 'sao-paulo' : params.get('region')) : 'sao-paulo',
-    type: params.has('type') ? params.getAll('type').join(',') : 'publica',
-    course: params.getAll('course').join(','), mode: params.getAll('mode').join(','),
-    area: params.get('area') || '',
-    admission: params.getAll('admission').join(','),
-  };
-
-  const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  function relevance(item, text, terms) {
+    const fields = [...item.names, ...item.cities, ...item.courses];
+    if (!terms.every(term => fields.some(value => value.includes(term)))) return -1;
+    if (!text) return 0;
+    if (item.names.includes(text)) return 4;
+    if (item.names.some(value => value.startsWith(text))) return 3;
+    if (fields.includes(text)) return 2;
+    return fields.some(value => value.includes(text)) ? 1 : 0;
+  }
 
   function updateResults() {
-    const terms = normalize(query.value).split(/\s+/).filter(Boolean);
-    const ordered = sort.value === 'name' ? [...cards].sort((a,b) => a.dataset.name.localeCompare(b.dataset.name,'pt-BR')) : cards;
-    let matches = 0;
-    for (const card of ordered) {
-      const data = card.dataset;
-      card.hidden = !terms.every(term => normalize(data.search).includes(term))
-        || (filters.city && !filters.city.split(',').includes(normalize(data.city).replace(/\s+/g, '-')))
-        || (filters.type && !filters.type.split(',').includes(data.public === 'true' ? 'publica' : 'particular'))
-        || (filters.course && !filters.course.split(',').some(course => (data.courses || '').split(',').includes(course)))
-        || (filters.area && !window.ToDentroCourseCatalog.courses.some(course => course.area === filters.area && (data.courses || '').split(',').includes(course.value)))
-        || (filters.mode && !filters.mode.split(',').includes(data.mode))
-        || (filters.admission && !filters.admission.split(',').some(method => (data.admission || '').split(',').includes(method)));
-      if (!card.hidden) matches += 1;
-      list.append(card);
+    const text = normalize(query.value);
+    const terms = text.split(' ').filter(Boolean);
+    const match = (key, options) => !filters[key].length || filters[key].some(value => options.includes(value));
+    const visible = [];
+    for (const item of institutions) {
+      const { card, university } = item;
+      const score = relevance(item, text, terms);
+      card.hidden = score < 0
+        || !match('city', item.cities.map(city => city.replaceAll(' ', '-')))
+        || !match('type', [university.public ? 'publica' : 'particular'])
+        || !match('course', item.courses)
+        || !match('area', item.areas)
+        || !match('period', item.periods)
+        || !match('mode', item.modes)
+        || !match('admission', university.admissionMethods || []);
+      if (!card.hidden) visible.push({ ...item, score });
     }
-    count.textContent = matches === 1 ? '1 instituição encontrada' : `${matches} instituições encontradas`;
-    document.querySelector('#search-empty').hidden = matches > 0;
-    regionChip.textContent = filters.city ? filters.city.split(',').map(city => window.ToDentroData.source.general.cities.find(item => item.id === city)?.name || city).join(' e ') : 'Cidade';
-    regionChip.setAttribute('aria-pressed', String(Boolean(filters.city)));
-    typeChip.textContent = filters.type.includes(',') ? 'Públicas e particulares' : filters.type === 'particular' ? 'Particulares' : filters.type ? 'Públicas' : 'Tipo de instituição';
-    typeChip.setAttribute('aria-pressed', String(Boolean(filters.type)));
-    const state = new URLSearchParams({...filters, busca: query.value, sort: sort.value});
+    visible.sort((a, b) => (sort.value === 'relevance' ? b.score - a.score : 0)
+      || collator.compare(a.university.name, b.university.name));
+    for (const { card } of visible) list.append(card);
+
+    count.textContent = visible.length === 1 ? '1 instituição encontrada' : `${visible.length} instituições encontradas`;
+    document.querySelector('#search-empty').hidden = visible.length > 0;
+    const active = fields.filter(name => filters[name].length).length;
+    badge.textContent = active;
+    badge.hidden = !active;
+    clear.hidden = !active;
+    filtersLink.setAttribute('aria-label', active ? `Filtros: ${active} categorias ativas` : 'Filtros');
+    const state = new URLSearchParams({ busca: query.value, sort: sort.value });
+    for (const name of fields) state.set(name, filters[name].join(','));
     filtersLink.href = `./filtros.html?${state}`;
-    for (const card of cards) {
+    for (const { card } of visible) {
       const link = card.querySelector('a');
       if (!link) continue;
       const destination = new URL(link.href);
@@ -78,23 +119,26 @@
       link.href = destination.href;
     }
   }
-  
+
   query.value = params.get('busca') || '';
   sort.value = params.get('sort') === 'name' ? 'name' : 'relevance';
   query.addEventListener('input', updateResults);
   sort.addEventListener('change', updateResults);
-  document.querySelector('.university-search-form').addEventListener('submit', event => {event.preventDefault(); updateResults();});
-  async function changeFilter(key, fallback, button) {
-    const previous = filters[key];
-    filters[key] = previous ? '' : fallback;
-    regionChip.disabled = true; typeChip.disabled = true;
-    try {
-      if (connected) await shared.saveSearchPreferences(new URLSearchParams(filters), window.ToDentroData);
-      updateResults();
-    } catch (error) { filters[key] = previous; reportError(error); }
-    finally { regionChip.disabled = false; typeChip.disabled = false; }
-  }
-  regionChip.addEventListener('click', () => changeFilter('city', 'sao-paulo', regionChip));
-  typeChip.addEventListener('click', () => changeFilter('type', 'publica', typeChip));
+  filtersLink.addEventListener('click', event => {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const current = new URL(location.href);
+    current.search = new URL(filtersLink.href).search;
+    history.replaceState(history.state, '', current.href);
+  });
+  document.querySelector('.university-search-form').addEventListener('submit', event => {
+    event.preventDefault();
+    updateResults();
+  });
+  clear.addEventListener('click', () => {
+    for (const name of fields) filters[name] = [];
+    note.hidden = true;
+    updateResults();
+    filtersLink.focus();
+  });
   updateResults();
 })();
