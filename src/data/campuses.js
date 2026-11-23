@@ -13,7 +13,7 @@ if (typeof document !== 'undefined' && document.currentScript) {
       const main = document.querySelector('main');
       if (main) {
         const notice = document.createElement('p'); notice.id = 'campus-load-status'; notice.setAttribute('role', 'alert');
-        notice.textContent = 'Não foi possível carregar os campi do banco. O mapa está exibindo localizações locais de demonstração. Confira a conexão e as regras do Firestore e recarregue para tentar novamente.';
+        notice.textContent = 'Não foi possível carregar os campi do banco. As cidades exibidas podem estar incompletas. Recarregue a página para tentar novamente.';
         main.prepend(notice);
       }
       return false;

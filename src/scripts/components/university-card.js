@@ -5,8 +5,18 @@
 
   class UniversityCard extends HTMLElement {
     static get observedAttributes() { return ['university-id', 'variant']; }
-    async connectedCallback() { if (window.ToDentroUniversitiesReady) await window.ToDentroUniversitiesReady; if (window.ToDentroCoursesReady) await window.ToDentroCoursesReady; this.render(); }
-    async attributeChangedCallback() { if (window.ToDentroUniversitiesReady) await window.ToDentroUniversitiesReady; if (window.ToDentroCoursesReady) await window.ToDentroCoursesReady; if (this.isConnected) this.render(); }
+    async connectedCallback() {
+      if (this.firstElementChild) return;
+      await window.ToDentroUniversitiesReady;
+      await window.ToDentroCoursesReady;
+      if (this.isConnected && !this.firstElementChild) this.render();
+    }
+    async attributeChangedCallback() {
+      if (!this.isConnected) return;
+      await window.ToDentroUniversitiesReady;
+      await window.ToDentroCoursesReady;
+      if (this.isConnected) this.render();
+    }
 
     render() {
       const university = window.ToDentroUniversities.find(item => item.id === this.getAttribute('university-id'));
@@ -35,7 +45,11 @@
       logo.textContent = university.acronym; logo.setAttribute('aria-hidden', 'true');
       const text = document.createElement('div');
       const title = document.createElement('h3'); title.textContent = university.name;
-      const locationText = document.createElement('p'); locationText.textContent = [university.city, university.category || (university.public ? 'Pública' : 'Particular')].filter(Boolean).join(' • ');
+      const campusCities = new Set((window.ToDentroCampuses || [])
+        .filter(campus => campus.universityId === university.id && campus.city)
+        .map(campus => campus.city));
+      const city = university.city || (campusCities.size === 1 ? [...campusCities][0] : '');
+      const locationText = document.createElement('p'); locationText.textContent = [city, university.category || (university.public ? 'Pública' : 'Particular')].filter(Boolean).join(' • ');
       text.append(title, locationText); info.append(logo, text);
       const tags = document.createElement('ul'); tags.className = 'university-tags'; tags.setAttribute('aria-label', 'Características da universidade');
       for (const [label, color] of [[{presencial: 'Presencial', ead: 'EAD', hibrida: 'Híbrida'}[university.mode], 'blue'], [university.tuition || (university.free ? 'Gratuita' : 'Com mensalidade'), 'green']].filter(([label]) => label)) {

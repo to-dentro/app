@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Universidade | Tô Dentro</title>
+    <link rel="icon" type="image/png" href="../../assets/images/brand/icon.png?v=2">
+    <link rel="icon" type="image/png" href="../../assets/images/brand/icon-dark-mode.png?v=2" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="stylesheet" href="../styles/pages/universidade.css">
     <script defer src="../scripts/services/auth.js"></script>
@@ -34,31 +36,41 @@
 
             <figure class="university-gallery" aria-label="Imagens da universidade">
                 <div id="university-gallery-track" class="university-gallery-track"></div>
-                <figcaption id="university-photo-credit"></figcaption>
+                <div class="university-gallery-dots" id="university-gallery-dots" role="group" aria-label="Escolher foto" hidden></div>
             </figure>
 
             <nav class="university-sections" aria-label="Seções da universidade">
-                <a class="university-shortcut tag-blue" id="university-courses-link" href="./cursos.html">Cursos</a>
+                <a class="university-shortcut tag-blue" id="university-courses-link" href="./cursos.html">
+                    <span class="material-symbols-outlined" aria-hidden="true">school</span> Cursos
+                </a>
                 <a class="university-shortcut tag-green" id="university-cutoff-link"
-                    href="./buscar-nota-de-corte.html">Notas de corte</a>
+                    href="./buscar-nota-de-corte.html">
+                    <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span> Notas de corte
+                </a>
                 <a class="university-shortcut tag-blue" id="university-opportunities-link"
-                    href="./oportunidades.html">Oportunidades</a>
+                    href="./oportunidades.html">
+                    <span class="material-symbols-outlined" aria-hidden="true">explore</span> Oportunidades
+                </a>
                 <a class="university-shortcut shortcut-calendar" id="university-calendar"
-                    href="./calendario.html">Calendário</a>
+                    href="./calendario.html">
+                    <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span> Calendário
+                </a>
             </nav>
 
             <section id="ingresso" class="university-admission-section" aria-labelledby="admission-title">
                 <h2 id="admission-title">Formas de ingresso</h2>
                 <div class="university-detail-card">
-                    <h3 id="university-admission"></h3>
-                    <p class="detail-muted">Confira a edição e o edital aplicável ao curso.</p>
-                    <a class="button button-yellow" id="university-admission-link">Entender formas de ingresso</a>
+                    <ul class="university-admission-list" id="university-admission"></ul>
+                    <p class="detail-muted" id="university-admission-note"></p>
                 </div>
             </section>
 
-            <a class="button button-green" href="./mapa.html" data-map-link data-map-university>Ver localização</a>
-            <a class="button button-yellow" id="university-community" href="./comunidade.html">Experiências do
-                estudante</a>
+            <a class="button button-green university-action" href="./mapa.html" data-map-link data-map-university>
+                <span class="material-symbols-outlined" aria-hidden="true">location_on</span> Ver localização
+            </a>
+            <a class="button button-yellow university-action" id="university-community" href="./comunidade.html">
+                <span class="material-symbols-outlined" aria-hidden="true">forum</span> Experiências do estudante
+            </a>
             <section class="university-more" aria-labelledby="more-title">
                 <h2 id="more-title">Saiba mais</h2>
                 <a id="university-official-site" class="university-official-card" target="_blank"

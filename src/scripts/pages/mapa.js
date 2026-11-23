@@ -22,12 +22,10 @@
   const admissions = selections('admission');
   const modes = selections('mode');
   const courses = selections('course');
-  const from = params.get('from');
-  if (from) {
-    const url = new URL(from, location.href);
-    const allowed = ['../../index.html', './universidade.html', './buscar-universidades.html', './comunidade.html', './filtros.html', './curso.html'].map(path => new URL(path, location.href));
-    if (allowed.some(item => item.protocol === url.protocol && item.host === url.host && item.pathname === url.pathname)) document.querySelector('#map-back').href = url.href;
-  }
+  const areas = selections('area');
+  const periods = selections('period');
+  const from = window.ToDentroNavigation.from(params, '../../index.html', './universidade.html', './buscar-universidades.html', './comunidade.html', './filtros.html', './curso.html');
+  if (from) document.querySelector('#map-back').href = from.href;
   const filterState = new URLSearchParams(params);
   filterState.set('return', 'mapa');
   document.querySelector('#map-filter').href = `./filtros.html?${filterState}`;
@@ -49,7 +47,8 @@
       && (!cities.length || cities.includes(normalize(item.city).replace(/\s+/g, '-')))
       && (!types.length || types.includes(item.public ? 'publica' : 'particular'))
       && (!modes.length || modes.includes(item.mode))
-      && (!params.get('area') || window.ToDentroCourseCatalog.courses.some(course => course.area === params.get('area') && item.courses.some(name => normalize(name) === course.value)))
+      && (!areas.length || item.courses.some(name => areas.includes(window.ToDentroData.getCourse(name, item.universityId)?.area)))
+      && (!periods.length || window.ToDentroData.getOfferings({ universityId: item.universityId, campusId: item.id }).some(offer => periods.includes(offer.periodId)))
       && (!courses.length || item.courses.some(course => courses.includes(normalize(course))))
       && (!admissions.length || admissions.some(method => (item.admissionMethods || []).includes(method))));
     const located = visible.filter(campus => Array.isArray(campus.coordinates) && campus.coordinates.length === 2 && campus.coordinates.every(Number.isFinite));

@@ -5,14 +5,8 @@
   const params = new URLSearchParams(location.search);
   const university = window.ToDentroUniversities.find(item => item.id === params.get('id'));
   // Permitir retorno apenas às telas locais conhecidas, preservando a busca.
-  const from = params.get('from');
-  if (from) {
-    const destination = new URL(from, location.href);
-    const allowed = [new URL('../../index.html', location.href), new URL('./buscar-universidades.html', location.href), new URL('./mapa.html', location.href), new URL('./salvos.html', location.href)];
-    if (allowed.some(url => destination.protocol === url.protocol && destination.host === url.host && destination.pathname === url.pathname)) {
-      document.querySelector('#university-back').href = destination.href;
-    }
-  }
+  const from = window.ToDentroNavigation.from(params, '../../index.html', './buscar-universidades.html', './mapa.html', './salvos.html');
+  if (from) document.querySelector('#university-back').href = from.href;
   if (!university) {
     document.querySelector('#university-not-found').hidden = false;
     return;
@@ -38,25 +32,50 @@
   const values = {
     'university-name': university.name,
     'university-location': [university.acronym, university.category || (university.public ? 'Pública' : 'Particular')].join(' · '),
-    'university-admission': university.admission,
     'university-description': university.description,
     'university-tuition': university.tuition || (university.free ? 'Gratuita' : 'Com mensalidade'),
   };
   for (const [id, text] of Object.entries(values)) document.getElementById(id).textContent = text;
-  const official = [university.website, university.admissionsUrl];
-  document.querySelector('#university-official-site').href = official[0];
-  document.querySelector('#university-admission-link').href = official[1];
+  const admissionList = document.querySelector('#university-admission');
+  const methods = [];
+  const notes = [];
+  for (const part of (university.admission || '').split(/[;·\n]+|\s+e\/ou\s+|\s+e\s+(?=seleções específicas|processo misto)/i)) {
+    const text = part.trim();
+    if (!text) continue;
+    if (/^consultar\b/i.test(text)) {
+      notes.push(`Consulte ${text.slice('consultar '.length).replace(/\.$/, '')}.`);
+    } else {
+      methods.push(text[0].toLocaleUpperCase('pt-BR') + text.slice(1));
+    }
+  }
+  for (const method of methods) {
+    const item = document.createElement('li');
+    item.textContent = method;
+    admissionList.append(item);
+  }
+  admissionList.hidden = !methods.length;
+  document.querySelector('#university-admission-note').textContent = notes.join(' ') || (methods.length
+    ? 'Confira a edição e o edital aplicável ao curso.'
+    : 'As formas de ingresso ainda não foram cadastradas.');
+  document.querySelector('#university-official-site').href = university.website;
   const gallery = document.querySelector('#university-gallery-track');
-  const photos = university.photos || [];
-  for (const photo of photos) {
+  const photos = (university.photos || []).slice(0, 3);
+  const slides = photos.length > 1 ? [...photos, photos[0]] : photos;
+  for (const [index, photo] of slides.entries()) {
     const image = document.createElement('img');
-    image.src = photo.src;
-    image.alt = photo.alt;
+    const repeated = index === photos.length;
+    image.alt = repeated ? '' : photo.alt;
+    if (repeated) image.setAttribute('aria-hidden', 'true');
     image.width = 900;
     image.height = 370;
+    image.referrerPolicy = 'no-referrer';
+    if (photo.position) image.style.objectPosition = photo.position;
     image.addEventListener('error', () => {
-      image.replaceWith(Object.assign(document.createElement('p'), { className: 'gallery-placeholder', textContent: 'Imagem indisponível no momento.' }));
+      const fallback = Object.assign(document.createElement('p'), { className: 'gallery-placeholder gallery-photo-error', textContent: 'Imagem indisponível no momento.' });
+      if (repeated) fallback.setAttribute('aria-hidden', 'true');
+      image.replaceWith(fallback);
     });
+    image.src = photo.src;
     gallery.append(image);
   }
   if (!photos.length) {
@@ -65,7 +84,55 @@
     placeholder.textContent = `Fotos da ${university.acronym} em breve`;
     gallery.append(placeholder);
   }
-  document.querySelector('#university-photo-credit').textContent = photos.map(photo => photo.credit).filter(Boolean).join(' · ');
+  if (photos.length > 1) {
+    const dots = document.querySelector('#university-gallery-dots');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const figure = gallery.closest('figure');
+    let active = 0;
+    let lastInteraction = 0;
+
+    const buttons = photos.map((photo, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.setAttribute('aria-label', `Foto ${index + 1} de ${photos.length}: ${photo.alt}`);
+      button.addEventListener('click', () => {
+        lastInteraction = Date.now();
+        showPhoto(index);
+      });
+      dots.append(button);
+      return button;
+    });
+
+    function updateIndicator(index) {
+      active = index;
+      buttons.forEach((button, position) => button.setAttribute('aria-current', String(position === index)));
+    }
+
+    function showPhoto(index) {
+      gallery.scrollTo({ left: index * gallery.clientWidth, behavior: reducedMotion.matches ? 'instant' : 'smooth' });
+    }
+
+    gallery.addEventListener('scroll', () => {
+      if (!gallery.clientWidth) return;
+      const end = gallery.scrollWidth - gallery.clientWidth;
+      if (gallery.scrollLeft >= end - 1) {
+        // A última posição repete a primeira foto, então o salto fica invisível.
+        gallery.scrollTo({ left: 0, behavior: 'instant' });
+        updateIndicator(0);
+        return;
+      }
+      const index = Math.max(0, Math.round(gallery.scrollLeft / gallery.clientWidth)) % photos.length;
+      if (index !== active) updateIndicator(index);
+    }, { passive: true });
+    gallery.addEventListener('pointerdown', () => { lastInteraction = Date.now(); });
+    updateIndicator(0);
+    dots.hidden = false;
+    window.setInterval(() => {
+      if (Date.now() - lastInteraction >= 5000 && !document.hidden && !reducedMotion.matches && !figure.matches(':hover, :focus-within')) {
+        showPhoto(active + 1);
+      }
+    }, 5000);
+  }
   for (const button of document.querySelectorAll('[data-detail]')) {
     button.addEventListener('click', () => document.getElementById(button.dataset.detail).showModal());
   }

@@ -1,5 +1,6 @@
 import { collection, getDocsFromServer } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
 import { db } from '../config/firebase.js';
+import { readUniversityCampuses } from './campuses.js';
 const read = async (...path) => (await getDocsFromServer(collection(db,...path))).docs.map(doc=>({...doc.data(),id:doc.id}));
 
 export async function getAcademics(universities) {
@@ -8,7 +9,7 @@ export async function getAcademics(universities) {
     const root=['universities',university.id];
     const courses=await read(...root,'courses');
     if(!courses.length)return null;
-    const [campuses,processes]=await Promise.all([read(...root,'campuses'),read(...root,'admissionProcesses')]);
+    const [campuses,processes]=await Promise.all([readUniversityCampuses(university.id),read(...root,'admissionProcesses')]);
     const groups=await Promise.all(campuses.map(async campus=>{
       const path=[...root,'campuses',campus.id,'courses'];
       const offerings=await read(...path);

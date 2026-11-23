@@ -486,6 +486,20 @@ window.ToDentroMockData = {
           "credit": "Foto: Cecília Bastos / USP Imagem",
           "id": "usp-photo-1",
           "universityId": "usp"
+        },
+        {
+          "src": "../../assets/images/universities/usp-campus-capital.jpg",
+          "alt": "Vista do campus da USP na capital",
+          "credit": "Fonte: Jornal da USP",
+          "id": "usp-photo-2",
+          "universityId": "usp"
+        },
+        {
+          "src": "https://direito.usp.br/pca/arquivos/410f548ac9ab_img-20230807-wa0006.jpg",
+          "alt": "Foto da Faculdade de Direito da USP",
+          "credit": "Fonte: Faculdade de Direito da USP",
+          "id": "usp-photo-3",
+          "universityId": "usp"
         }
       ],
       "isMock": true,
@@ -840,6 +854,29 @@ window.ToDentroMockData = {
       "free": true,
       "description": "Ensino, pesquisa e extensão para transformar o seu futuro. Explore cursos, campi e possibilidades de ingresso.",
       "admission": "Vestibular • ENEM • Processos próprios",
+      "photos": [
+        {
+          "src": "https://s2-g1.glbimg.com/PRD-hjlbpGpJ6f5c7W5ksgHrY80=/1280x0/filters:format(jpeg)/https://i.s3.glbimg.com/v1/AUTH_59edd422c0c84a879bd37670ae4f538a/internal_photos/bs/2025/u/d/JcsnYCTfC5BZ87mFQqBQ/botucatu-aci-unesp.jpg",
+          "alt": "Campus da UNESP em Botucatu",
+          "credit": "Fonte: g1",
+          "id": "unesp-photo-1",
+          "universityId": "unesp"
+        },
+        {
+          "src": "https://www2.unesp.br/Modulos/Noticias/35796/ibilce28maio20.jpg",
+          "alt": "Instituto de Biociências, Letras e Ciências Exatas da UNESP",
+          "credit": "Fonte: UNESP",
+          "id": "unesp-photo-2",
+          "universityId": "unesp"
+        },
+        {
+          "src": "https://discursivas.com/portal/wp-content/uploads/2026/05/unesp_entrada.webp",
+          "alt": "Entrada da UNESP",
+          "credit": "Fonte: Discursivas",
+          "id": "unesp-photo-3",
+          "universityId": "unesp"
+        }
+      ],
       "isMock": true,
       "website": "https://www.unesp.br/",
       "admissionsUrl": "https://www.unesp.br/vestibular",

@@ -14,6 +14,7 @@
   let areas = Object.fromEntries(source.courseAreas.map(item => [item.id, item.name]));
   let courses = source.courseCatalog.map(({ legacyValue, areaId, ...item }) => ({ ...item, value: legacyValue, area: areaId }));
   const courseIndex = index(courses);
+  const universityCourses = new Map();
   const courseAliases = new Map(courses.flatMap(item => [[item.id, item.id], [item.value, item.id], [normalize(item.name), item.id]]));
   let campuses = source.universities.flatMap(university => university.campuses.map(({ courses, ...campus }) => campus));
   const campusIndex = index(campuses);
@@ -150,9 +151,10 @@
     applyAcademics: groups => {
       const ids=new Set(groups.map(group=>group.universityId));
       const merge=(old,records)=>freeze([...old.filter(item=>!ids.has(item.universityId)),...records]);
-      const liveCourses=groups.flatMap(group=>group.courses.map(course=>({ ...course, value: normalize(course.name), area:course.areaId, degree:'Bacharelado', dataSource:'firestore' })));
-      const liveCourseIds=new Set(liveCourses.map(course=>course.id));
-      courses=freeze([...courses.filter(course=>!liveCourseIds.has(course.id)),...liveCourses]);
+      const liveCourses=groups.flatMap(group=>group.courses.map(course=>({ ...course, value: normalize(course.name), area:course.areaId, degree:course.degree || 'Bacharelado', dataSource:'firestore' })));
+      const liveCourseIndex=index(liveCourses);
+      liveCourses.forEach(course => universityCourses.set(`${course.universityId}:${course.id}`, course));
+      courses=freeze([...courses.filter(course=>!liveCourseIndex.has(course.id)),...liveCourseIndex.values()]);
       areas=freeze({...areas,...Object.fromEntries(groups.flatMap(group=>group.courses.map(course=>[course.areaId,course.area])))});
       courseIndex.clear();courses.forEach(course=>courseIndex.set(course.id,course));
       courses.forEach(course=>[course.id,course.value,normalize(course.name)].forEach(alias=>courseAliases.set(alias,course.id)));
@@ -173,7 +175,10 @@
     },
     getScores: (filter={}) => cutoffScores.map(score=>({...score,courseId:score.courseId || offeringIndex.get(score.offeringId)?.courseId})).filter(score=>Object.entries(filter).every(([key,value])=>value==null || score[key]===value)),
     getUniversity: id => universityIndex.get(id) || null,
-    getCourse: value => courseIndex.get(courseId(value)) || null,
+    getCourse: (value, universityId) => {
+      const id = courseId(value);
+      return universityCourses.get(`${universityId}:${id}`) || courseIndex.get(id) || null;
+    },
     getCampus: (universityId, value) => resolveCampus(universityId, value) || null,
     getCampuses: universityId => campuses.filter(item => item.universityId === universityId),
     getOfferings,

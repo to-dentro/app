@@ -162,6 +162,7 @@
   height: auto;
   aspect-ratio: 2.45;
   object-fit: cover;
+  object-position: center;
 }
 
 .university-page .gallery-placeholder {
@@ -172,12 +173,6 @@
   background: var(--color-blue);
   color: var(--color-text-muted);
   text-align: center;
-}
-
-.university-gallery figcaption {
-  margin-top: var(--space-1);
-  font-size: 0.625rem;
-  color: var(--color-text-muted);
 }
 
 .university-admission-section>h2 {
@@ -285,3 +280,59 @@
 .university-official-card strong { display:block; font-size:var(--font-size-sm); }
 .university-official-card small { display:block; margin-top:.25rem; color:var(--color-text-muted); font-size:var(--font-size-xs); }
 .university-official-card:focus-visible { outline:3px solid var(--color-ink); outline-offset:4px; }
+.university-shortcut,
+.university-action { gap: var(--space-2); }
+
+.university-shortcut .material-symbols-outlined,
+.university-action .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 1.25rem;
+}
+
+.university-admission-list {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  list-style: disc;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}
+
+.university-admission-list li + li { margin-top: var(--space-2); }
+
+@media (max-width: 380px) {
+  .university-shortcut { padding-inline: var(--space-2); }
+}
+.university-gallery-track { scrollbar-width: none; }
+
+.university-page .gallery-photo-error {
+  min-height: 0;
+  aspect-ratio: 2.45;
+}
+
+.university-gallery-dots {
+  display: flex;
+  justify-content: center;
+}
+
+.university-gallery-dots button {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.university-gallery-dots button::before {
+  content: '';
+  width: .375rem;
+  height: .375rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.university-gallery-dots button[aria-current='true']::before { background: currentColor; }

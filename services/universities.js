@@ -1,5 +1,6 @@
 import { collection, getDocsFromServer } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
 import { db } from '../config/firebase.js';
+import { universityPhotos } from '../src/data/university-photos.js';
 
 export function mergeUniversity(record, mock = {}) {
   const safeUrl = value => { try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } };
@@ -12,10 +13,10 @@ export function mergeUniversity(record, mock = {}) {
     website: safeUrl(record.officialWebsite),
     admissionsUrl: safeUrl(record.officialWebsite),
     officialSource: safeUrl(record.officialSource),
-    city: mock.city || '', state: mock.state || '',
+    city: record.city || mock.city || '', state: record.state || mock.state || '',
     courses: mock.courses || [], periods: mock.periods || [],
     admissionMethods: mock.admissionMethods || [],
-    photos: mock.photos || [], campusIds: mock.campusIds || [],
+    photos: universityPhotos[record.id] || mock.photos || [], campusIds: mock.campusIds || [],
     mode: mock.mode || null,
     generalDataSource: 'firestore', academicDataSource: 'mock',
   };

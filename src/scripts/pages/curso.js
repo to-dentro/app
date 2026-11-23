@@ -5,7 +5,7 @@
   await window.ToDentroAuth.ready;
   const params = new URLSearchParams(location.search);
   const university = window.ToDentroUniversities.find(item => item.id === params.get('universidade'));
-  const course = window.ToDentroData.getCourse(params.get('curso'));
+  const course = window.ToDentroData.getCourse(params.get('curso'), university?.id);
   const data = window.ToDentroData;
   const ui = window.ToDentroAcademicUI;
   const offerings = university && course ? data.getOfferings({ universityId: university.id, courseId: course.id }) : [];
@@ -28,10 +28,8 @@
   const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.document}</svg>`;
   const back = new URL('./cursos.html', location.href);
   back.searchParams.set('universidade', university.id);
-  if (params.get('from')) {
-    const from = new URL(params.get('from'), location.href);
-    if (from.origin === back.origin && from.pathname === back.pathname && from.searchParams.get('universidade') === university.id) back.search = from.search;
-  }
+  const from = window.ToDentroNavigation.from(params, back);
+  if (from && from.searchParams.get('universidade') === university.id) back.search = from.search;
   document.querySelector('#course-back').href = back.href;
   document.title = `${course.name} · ${university.acronym} | Tô Dentro`;
   document.querySelector('#course-name').textContent = course.name;
@@ -77,7 +75,16 @@
     const card=document.createElement('article');card.className='course-panel course-campus-row';
     const info=document.createElement('div');info.className='course-campus-info';
     const title=document.createElement('h3');title.textContent=campus?.name || campusId;info.append(title);
-    for(const offer of own){const details=document.createElement('p');details.textContent=[ui.period(offer.periodId),ui.duration(offer),Number.isInteger(offer.seats)?`${offer.seats} vagas${offer.seatsPeriod==='year'?' por ano':''}`:'Vagas não informadas'].join(' · ');info.append(details);}
+    for (const offer of own) {
+      const seatLabel = offer.seatsText
+        ? `${offer.sharedSeats ? 'Vagas sem divisão por campus ou turno: ' : ''}${offer.seatsText}`
+        : Number.isInteger(offer.seats)
+          ? `${offer.seats} vagas${offer.seatsPeriod === 'year' ? ' por ano' : ''}`
+          : 'Vagas não informadas';
+      const details = document.createElement('p');
+      details.textContent = [ui.period(offer.periodId), ui.duration(offer), seatLabel].join(' · ');
+      info.append(details);
+    }
     const link=document.createElement('a');link.className='course-campus-map';
     const map=new URL('./mapa.html',location.href);map.searchParams.set('universidade',university.id);map.searchParams.set('campus',campusId);map.searchParams.set('from',location.pathname+location.search);link.href=map.href;
     link.setAttribute('aria-label',`Ver ${campus?.name || campusId} no mapa`);link.title=`Ver ${campus?.name || campusId} no mapa`;

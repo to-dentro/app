@@ -11,13 +11,12 @@
   const catalog = window.ToDentroCourseCatalog;
   const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   const courseIds = new Set(window.ToDentroData.getOfferings({ universityId: university.id }).map(item => item.courseId));
-  const courses = catalog.courses.filter(course => courseIds.has(course.id));
+  const courses = catalog.courses.filter(course => courseIds.has(course.id))
+    .map(course => window.ToDentroData.getCourse(course.id, university.id));
   const back = new URL('./universidade.html', location.href);
   back.searchParams.set('id', university.id);
-  if (params.get('from')) {
-    const from = new URL(params.get('from'), location.href);
-    if (from.origin === back.origin && from.pathname === back.pathname && from.searchParams.get('id') === university.id) back.search = from.search;
-  }
+  const from = window.ToDentroNavigation.from(params, back);
+  if (from && from.searchParams.get('id') === university.id) back.search = from.search;
   document.querySelector('#courses-back').href = back.href;
   document.title = `Cursos da ${university.acronym} | Tô Dentro`;
   document.querySelector('#courses-context').textContent = `${university.acronym} · ${university.name}`;
