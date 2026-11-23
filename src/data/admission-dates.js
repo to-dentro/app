@@ -1,15 +1,13 @@
 // Datas do Firestore no navegador; adaptador local para os testes do catálogo.
-window.ToDentroAdmissionDates = window.ToDentroData.views.admissionDates;
 if (typeof document !== 'undefined' && document.currentScript) {
   const root = new URL('../../', document.currentScript.src);
-  window.ToDentroAdmissionDates = []; window.ToDentroCalendar = []; window.ToDentroDateEstimates = [];
+  window.ToDentroCalendar = []; window.ToDentroDateEstimates = [];
   window.ToDentroAdmissionsReady = (async () => {
     try {
       await window.ToDentroUniversitiesReady;
       const service = await import(new URL('services/admissions.js', root).href);
       const catalog = await service.getAdmissions(window.ToDentroUniversities);
       window.ToDentroAdmissionCatalog = catalog;
-      window.ToDentroAdmissionDates = catalog.selections;
       window.ToDentroCalendar = catalog.calendar;
       window.ToDentroDateEstimates = catalog.estimates;
       return true;

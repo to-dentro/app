@@ -69,12 +69,8 @@
     destination.searchParams.set('from', `${location.pathname}?${state}`);
     location.href = destination.href;
   }
-  const from = params.get('from');
-  if (from) {
-    const url = new URL(from, location.href);
-    const allowed = ['../../index.html', './perfil.html', './universidade.html', './salvos.html'].map(path => new URL(path, location.href));
-    if (allowed.some(item => item.protocol === url.protocol && item.host === url.host && item.pathname === url.pathname)) document.querySelector('#calendar-back').href = url.href;
-  }
+  const from = window.ToDentroNavigation.from(params, '../../index.html', './perfil.html', './universidade.html', './salvos.html');
+  if (from) document.querySelector('#calendar-back').href = from.href;
   const dateKey = day => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   function render() {
     const monthName = new Intl.DateTimeFormat('pt-BR', {month:'long'}).format(new Date(year, month, 1));
