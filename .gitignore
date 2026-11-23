@@ -1,11 +1,20 @@
+# Dependências e arquivos gerados
 node_modules/
 dist/
+/.firebase/
+__pycache__/
+*.pyc
+*.log
+
+# Configuração local
 .env
 .env.*
 !.env.example
-*.log
+
+# Arquivos do sistema
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Credenciais administrativas locais do Firebase
 /.credentials/
