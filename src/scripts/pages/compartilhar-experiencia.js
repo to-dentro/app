@@ -11,6 +11,7 @@
   const text = document.querySelector('#experience-text');
   const form = document.querySelector('#experience-form');
   const status = document.querySelector('#experience-status');
+  const { createCommunityPost } = await import(new URL('services/community.js', new URL('../../', location.href)).href);
   for (const item of window.ToDentroUniversities) university.append(new Option(`${item.acronym} — ${item.name}`, item.id));
   for (const item of window.ToDentroCourseCatalog.courses) course.append(new Option(item.name, item.name));
   const role = document.querySelector('#experience-role');
@@ -38,15 +39,12 @@
   otherRole.addEventListener('input', () => otherRole.setCustomValidity(''));
   university.value = window.ToDentroUniversities.some(item => item.id === params.get('universidade')) ? params.get('universidade') : '';
   const back = new URL('./comunidade.html', location.href);
-  if (params.get('from')) {
-    const from = new URL(params.get('from'), location.href);
-    const experience = new URL('./experiencia.html', location.href);
-    if (from.origin === back.origin && [back.pathname, experience.pathname].includes(from.pathname)) { back.pathname = from.pathname; back.search = from.search; }
-  } else if (university.value) back.searchParams.set('universidade', university.value);
+  const from = window.ToDentroNavigation.from(params, back, './experiencia.html');
+  if (from) { back.pathname = from.pathname; back.search = from.search; } else if (university.value) back.searchParams.set('universidade', university.value);
   document.querySelector('#experience-back').href = back.href;
   document.querySelector('#experience-cancel').href = back.href;
   for (const field of [course, title, text]) field.addEventListener('input', () => field.setCustomValidity(''));
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
     event.preventDefault();
     for (const field of [course, title, text]) field.setCustomValidity(field.value.trim() ? '' : 'Preencha este campo.');
     updatePeriod();
@@ -55,25 +53,24 @@
     if (!form.reportValidity()) return;
     if (!window.ToDentroUniversities.some(item => item.id === university.value)) return;
     const post = {
-      id: crypto.randomUUID(), author: 'Você', initials: 'VC', universityId: university.value, course: course.value.trim(),
+      universityId: university.value, course: course.value.trim(),
       role: (role.value === 'Outro' ? otherRole.value.trim() : role.value) || 'Membro da comunidade',
       startYear: start.value, endYear: ongoing.checked ? '' : end.value, ongoing: ongoing.checked,
       experiencePeriod: start.value ? `${start.value} até ${ongoing.checked ? 'hoje' : end.value}` : '',
       category: 'experiencias', title: title.value.trim(), text: text.value.trim(),
-      publishedAt: new Date().toISOString(),
     };
+    const submit = form.querySelector('[type="submit"]');
+    submit.disabled = true;
     try {
-      const saved = JSON.parse(localStorage.getItem(window.ToDentroAuth.storageKey('to-dentro-community-posts')) || '[]');
-      if (!Array.isArray(saved)) throw new Error('Invalid posts');
-      localStorage.setItem(window.ToDentroAuth.storageKey('to-dentro-community-posts'), JSON.stringify([...saved, post]));
+      const postId = await createCommunityPost(post);
+      const destination = new URL('./comunidade.html', location.href);
+      destination.searchParams.set('universidade', university.value);
+      destination.searchParams.delete('busca'); destination.searchParams.delete('categoria');
+      destination.searchParams.set('publicado', postId);
+      location.href = destination.href;
     } catch {
-      status.textContent = 'Não foi possível salvar no navegador. Seu texto continua aqui; tente novamente.';
-      return;
+      status.textContent = 'Não foi possível publicar no Firebase. Seu relato continua aqui; tente novamente.';
+      submit.disabled = false;
     }
-    const destination = new URL('./comunidade.html', location.href);
-    destination.searchParams.set('universidade', university.value);
-    destination.searchParams.delete('busca'); destination.searchParams.delete('categoria');
-    destination.searchParams.set('publicado', post.id);
-    location.href = destination.href;
   });
 })();

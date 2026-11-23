@@ -3,6 +3,15 @@
   if (window.ToDentroUniversitiesReady) await window.ToDentroUniversitiesReady;
   await window.ToDentroAuth.ready;
   const params = new URLSearchParams(location.search);
+  const appRoot = new URL('../../', location.href);
+  const { getCommunityPosts } = await import(new URL('services/community.js', appRoot).href);
+  let remotePosts = [];
+  let communityLoadError = '';
+  try {
+    remotePosts = await getCommunityPosts();
+  } catch {
+    communityLoadError = 'Não foi possível carregar os relatos compartilhados agora. Confira sua conexão e tente novamente.';
+  }
   let localPosts = [];
   try {
     const saved = JSON.parse(localStorage.getItem(window.ToDentroAuth.storageKey('to-dentro-community-posts')) || '[]');
@@ -43,14 +52,9 @@
     context.hidden = false;
     document.title = `Comunidade • ${university.acronym} | Tô Dentro`;
   }
-  const from = params.get('from');
-  if (from) {
-    const url = new URL(from, location.href);
-    const home = new URL('../../index.html', location.href);
-    const details = new URL('./universidade.html', location.href);
-    if (url.protocol === home.protocol && url.host === home.host
-      && (url.pathname === home.pathname || (university && url.pathname === details.pathname && url.searchParams.get('id') === university.id))) back.href = url.href;
-  }
+  const details = new URL('./universidade.html', location.href);
+  const from = window.ToDentroNavigation.from(params, '../../index.html', details);
+  if (from && (from.pathname !== details.pathname || from.searchParams.get('id') === university?.id)) back.href = from.href;
 
   function element(tag, className, text) {
     const node = document.createElement(tag);
@@ -68,9 +72,11 @@
     document.querySelector('#community-share').textContent = doubts ? 'Criar uma dúvida' : 'Compartilhar minha experiência';
     document.querySelector('#community-notice-title').textContent = doubts ? 'Uma comunidade acolhedora' : 'Conteúdo da comunidade';
     document.querySelector('#community-notice-text').textContent = doubts ? 'Não compartilhe documentos ou dados pessoais. Respeite outras pessoas e indique suas fontes.' : 'Relatos são pessoais e não são conteúdos oficiais. Consulte fontes oficiais para editais e regras.';
+    if (communityLoadError) document.querySelector('#community-notice-text').textContent += ` ${communityLoadError}`;
     const terms = doubts ? [] : normalize(query.value).split(/\s+/).filter(Boolean);
     const filteredUniversity = doubts ? questionUniversity.value : universityId;
-    const posts = [...window.ToDentroCommunity, ...localPosts].filter(post => post.category === category
+    const allPosts = [...window.ToDentroCommunity, ...localPosts, ...remotePosts];
+    const posts = allPosts.filter(post => post.category === category
       && (!filteredUniversity || post.universityId === filteredUniversity)
       && (!doubts || ((!admissionOnly || post.topic === 'ingresso') && (!questionTopic.value || post.topic === questionTopic.value)))
       && terms.every(term => {
@@ -82,6 +88,9 @@
     feed.replaceChildren();
     for (const post of posts) {
       const article = element('article', 'community-post');
+      if (window.ToDentroCommunity.includes(post)) {
+        article.append(element('p', 'demo-content-label', 'Conteúdo de demonstração'));
+      }
       const author = element('header', 'post-author');
       const initials = post.initials || post.author.split(/\s+/).map(name => name[0]).slice(0, 2).join('');
       const fallbackAvatar = () => {
@@ -107,7 +116,9 @@
         const discussion = new URL('./duvida.html', location.href); discussion.searchParams.set('id', post.id);
         const state = new URLSearchParams(params); state.set('categoria', 'duvidas'); state.set('universidade', questionUniversity.value); state.set('ordem', sort.value);
         discussion.searchParams.set('from', `${location.pathname}?${state}`); open.href = discussion.href;
-        article.append(author, element('h2', 'post-title', post.title), element('p', 'question-response-count', `${count} ${count === 1 ? 'resposta' : 'respostas'}`), open);
+        article.append(author, element('h2', 'post-title', post.title));
+        if (Array.isArray(post.replies)) article.append(element('p', 'question-response-count', `${count} ${count === 1 ? 'resposta' : 'respostas'}`));
+        article.append(open);
         feed.append(article); continue;
       }
       const read = element('a', 'button button-yellow', category === 'duvidas' ? 'Ler dúvida' : 'Ler experiência');
@@ -120,7 +131,8 @@
       feed.append(article);
     }
     empty.hidden = posts.length > 0;
-    empty.textContent = universityId && !university ? 'Universidade não encontrada. Volte à busca para escolher uma instituição.'
+    empty.textContent = communityLoadError && posts.length === 0 ? communityLoadError
+      : universityId && !university ? 'Universidade não encontrada. Volte à busca para escolher uma instituição.'
       : category === 'duvidas' ? 'Ainda não há dúvidas nesta seleção.'
       : 'Nenhum relato encontrado nesta seleção. Tente outro assunto, universidade ou curso.';
     for (const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.category === category));

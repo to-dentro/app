@@ -3,21 +3,30 @@
   if (window.ToDentroUniversitiesReady) await window.ToDentroUniversitiesReady;
   await window.ToDentroAuth.ready;
   const params = new URLSearchParams(location.search);
+  const appRoot = new URL('../../', location.href);
+  const { getCommunityPost } = await import(new URL('services/community.js', appRoot).href);
   let localPosts = [];
   try {
     const saved = JSON.parse(localStorage.getItem(window.ToDentroAuth.storageKey('to-dentro-community-posts')) || '[]');
     if (Array.isArray(saved)) localPosts = saved;
   } catch { /* Os exemplos continuam disponíveis sem armazenamento. */ }
-  const post = [...window.ToDentroCommunity, ...localPosts].find(item => item && item.id === params.get('id') && typeof item.title === 'string' && typeof item.text === 'string' && typeof item.author === 'string');
-  const back = new URL('./comunidade.html', location.href);
-  if (params.get('from')) {
-    const from = new URL(params.get('from'), location.href);
-    if (from.origin === back.origin && from.pathname === back.pathname) back.search = from.search;
+  let post = [...window.ToDentroCommunity, ...localPosts].find(item => item && item.id === params.get('id') && typeof item.title === 'string' && typeof item.text === 'string' && typeof item.author === 'string');
+  let loadError = false;
+  if (!post) {
+    try { post = await getCommunityPost(params.get('id')); } catch { loadError = true; }
   }
+  const back = new URL('./comunidade.html', location.href);
+  const from = window.ToDentroNavigation.from(params, back);
+  if (from) back.search = from.search;
   document.querySelector('#experience-back').href = back.href;
-  if (!post) { document.querySelector('#experience-not-found').hidden = false; return; }
+  if (!post) {
+    const notice = document.querySelector('#experience-not-found');
+    if (loadError) notice.querySelector('p').textContent = 'Não foi possível carregar este relato agora. Confira sua conexão e tente novamente.';
+    notice.hidden = false; return;
+  }
   const university = window.ToDentroUniversities.find(item => item.id === post.universityId);
   document.title = `${post.title} | Tô Dentro`;
+  document.querySelector('#experience-demo').hidden = !window.ToDentroCommunity.includes(post);
   document.querySelector('#experience-title').textContent = post.title;
   document.querySelector('#experience-author').textContent = [post.author, university?.acronym, post.course].filter(Boolean).join(' · ');
   document.querySelector('#experience-role').textContent = post.role || 'Membro da comunidade';

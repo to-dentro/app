@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Criar dúvida | Tô Dentro</title>
+    <link rel="icon" type="image/png" href="../../assets/images/brand/icon.png?v=2">
+    <link rel="icon" type="image/png" href="../../assets/images/brand/icon-dark-mode.png?v=2" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="stylesheet" href="../styles/pages/compartilhar-experiencia.css">
     <script defer src="../scripts/services/auth.js"></script>
@@ -65,10 +67,10 @@
                 <p>Não inclua documentos, telefone ou dados pessoais. Busque respostas existentes e indique fontes
                     quando possível.</p>
             </aside>
-            <p class="experience-local-note">Sua dúvida ficará salva neste navegador.</p>
+            <p class="experience-local-note">Sua dúvida será publicada para toda a comunidade.</p>
             <p class="experience-local-note" id="question-status" role="status"></p>
             <button class="button button-ink" type="submit">Publicar dúvida</button>
-            <a class="button experience-cancel" id="question-cancel"
+            <a class="button experience-cancel" id="question-cancel" data-back
                 href="./comunidade.html?categoria=duvidas">Cancelar</a>
         </form>
         <noscript>Ative o JavaScript para publicar sua dúvida.</noscript>

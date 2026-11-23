@@ -54,6 +54,50 @@ service cloud.firestore {
         && validPreferences(profile.preferences);
     }
 
+    function validCommunityPost(post, uid) {
+      return post.keys().hasAll([
+          'uid', 'author', 'initials', 'category', 'title', 'text', 'universityId',
+          'course', 'topic', 'role', 'startYear', 'endYear', 'ongoing',
+          'experiencePeriod', 'publishedAt'
+        ])
+        && post.keys().hasOnly([
+          'uid', 'author', 'initials', 'category', 'title', 'text', 'universityId',
+          'course', 'topic', 'role', 'startYear', 'endYear', 'ongoing',
+          'experiencePeriod', 'publishedAt'
+        ])
+        && post.uid == uid
+        && exists(/databases/$(database)/documents/users/$(uid))
+        && post.author == get(/databases/$(database)/documents/users/$(uid)).data.displayName
+        && post.author is string && post.author.size() > 0 && post.author.size() <= 120
+        && post.initials is string && post.initials.size() <= 4
+        && post.category in ['experiencias', 'duvidas']
+        && post.title is string && post.title.size() > 0 && post.title.size() <= 150
+        && post.text is string && post.text.size() > 0 && post.text.size() <= 10000
+        && (post.universityId == null || (post.universityId is string && post.universityId.size() <= 120))
+        && post.course is string && post.course.size() <= 160
+        && post.topic in ['', 'ingresso', 'pesquisa', 'permanencia', 'vida-academica']
+        && post.role is string && post.role.size() <= 80
+        && post.startYear is string && post.startYear.size() <= 4
+        && post.endYear is string && post.endYear.size() <= 4
+        && post.ongoing is bool
+        && post.experiencePeriod is string && post.experiencePeriod.size() <= 32
+        && post.publishedAt == request.time
+        && (post.category != 'experiencias' || (post.universityId is string && post.course.size() > 0));
+    }
+
+    function validCommunityReply(reply, uid) {
+      return reply.keys().hasAll(['uid', 'author', 'initials', 'text', 'source', 'publishedAt'])
+        && reply.keys().hasOnly(['uid', 'author', 'initials', 'text', 'source', 'publishedAt'])
+        && reply.uid == uid
+        && exists(/databases/$(database)/documents/users/$(uid))
+        && reply.author == get(/databases/$(database)/documents/users/$(uid)).data.displayName
+        && reply.author is string && reply.author.size() > 0 && reply.author.size() <= 120
+        && reply.initials is string && reply.initials.size() <= 4
+        && reply.text is string && reply.text.size() > 0 && reply.text.size() <= 10000
+        && reply.source is string && reply.source.size() <= 2000
+        && reply.publishedAt == request.time;
+    }
+
     // Catálogo institucional público; escrita apenas por ferramentas administrativas.
     match /universities/{universityId} {
       allow get, list: if true;
@@ -102,6 +146,26 @@ service cloud.firestore {
       }
     }
 
+    match /communityPosts/{postId} {
+      allow get, list: if true;
+      allow create: if request.auth != null
+        && validCommunityPost(request.resource.data, request.auth.uid);
+      allow update: if false;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+
+      match /replies/{replyId} {
+        allow get, list: if true;
+        allow create: if request.auth != null
+          && exists(/databases/$(database)/documents/communityPosts/$(postId))
+          && get(/databases/$(database)/documents/communityPosts/$(postId)).data.category == 'duvidas'
+          && validCommunityReply(request.resource.data, request.auth.uid);
+        allow update: if false;
+        allow delete: if request.auth != null
+          && (resource.data.uid == request.auth.uid
+            || get(/databases/$(database)/documents/communityPosts/$(postId)).data.uid == request.auth.uid);
+      }
+    }
+
     match /users/{uid} {
       // Não permite listar perfis ou ler o cadastro de outra pessoa.
       allow get: if ownsProfile(uid);
@@ -117,7 +181,7 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['displayName', 'email', 'preferences', 'updatedAt']);
 
-      allow delete: if false;
+      allow delete: if ownsProfile(uid);
     }
     
     match /{document=**} {
