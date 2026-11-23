@@ -59,6 +59,7 @@
       busy = true;
       const button = document.querySelector('.login-forgot'); button.disabled = true;
       const success = 'Se houver uma conta com esse e-mail, você receberá as instruções para redefinir sua senha.';
+      show('Enviando link de recuperação…');
       try { await authService.resetPassword(email.value); show(success); }
       catch (error) { show(error.code === 'auth/user-not-found' ? success : ui.accountErrorMessage(error)); }
       finally { busy = false; button.disabled = false; }

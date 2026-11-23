@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações | Tô Dentro</title>
+    <link rel="icon" type="image/png" href="../../assets/images/brand/icon.png?v=2">
+    <link rel="icon" type="image/png" href="../../assets/images/brand/icon-dark-mode.png?v=2" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/pages/perfil.css">
+    <link rel="stylesheet" href="../styles/pages/configuracoes.css">
+    <script defer src="../scripts/services/auth.js"></script>
+    <script defer src="../scripts/services/navigation.js"></script>
+</head>
+
+<body>
+    <main class="page-container settings-page" id="conteudo-principal">
+        <header class="profile-header">
+            <a class="profile-back" href="./perfil.html" aria-label="Voltar ao perfil">
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_back_ios_new</span>
+            </a>
+            <h1>Configurações</h1>
+        </header>
+
+        <div class="settings-view" data-settings-view="inicio">
+            <a class="settings-about" target="_blank" href="https://to-dentro.github.io/to-dentro/">
+                <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+                <span><strong>Quem está por trás do Tô Dentro?</strong><small>De estudantes para estudantes</small></span>
+                <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </a>
+            <a class="settings-row" href="./configuracoes.html?tela=conta">
+                <span>Gerenciamento de conta</span>
+                <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </a>
+            <a class="settings-row" href="./termos.html?from=configuracoes">
+                <span>Termos de uso e privacidade</span>
+                <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </a>
+            <button class="settings-row settings-logout" id="settings-logout" type="button">
+                <span>Sair</span>
+                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+            </button>
+        </div>
+
+        <div class="settings-view" data-settings-view="conta" hidden>
+            <section class="settings-section" aria-labelledby="account-title">
+                <h2 id="account-title">Sua conta</h2>
+                <form class="settings-name-card" id="settings-name-form" method="post">
+                    <label for="settings-name">Nome</label>
+                    <input id="settings-name" name="displayName" type="text" maxlength="120" autocomplete="name" required disabled>
+                    <button class="button button-ink" type="submit" disabled>Salvar nome</button>
+                </form>
+                <a class="settings-row" href="./configuracoes.html?tela=email">
+                    <span>E-mail <small id="settings-account-email"></small></span>
+                    <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                </a>
+                <a class="settings-row" href="./configuracoes.html?tela=senha">
+                    <span>Alterar senha</span>
+                    <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                </a>
+            </section>
+            <button class="settings-row settings-delete" id="open-delete-account" type="button">
+                <span>Excluir conta</span>
+                <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </button>
+        </div>
+
+        <form class="settings-form" data-settings-view="email" id="settings-email-form" method="post" hidden>
+            <p>Você vai receber um link para confirmar seu novo endereço.</p>
+            <label for="settings-current-email">E-mail atual</label>
+            <input id="settings-current-email" name="currentEmail" type="email" maxlength="254" autocomplete="email" required>
+            <label for="settings-email">Novo e-mail</label>
+            <input id="settings-email" name="email" type="email" maxlength="254" autocomplete="off" required>
+            <label for="settings-email-password">Senha atual</label>
+            <input id="settings-email-password" name="password" type="password" autocomplete="current-password" required>
+            <button class="button button-ink" type="submit" disabled>Enviar confirmação</button>
+        </form>
+
+        <form class="settings-form" data-settings-view="senha" id="settings-password-form" method="post" hidden>
+            <label for="settings-current-password">Senha atual</label>
+            <input id="settings-current-password" name="currentPassword" type="password" autocomplete="current-password" required>
+            <label for="settings-new-password">Nova senha</label>
+            <input id="settings-new-password" name="newPassword" type="password" minlength="6" autocomplete="new-password" required>
+            <button class="button button-ink" type="submit" disabled>Salvar senha</button>
+            <button class="settings-text-button" id="settings-recover-password" type="button" disabled>Esqueci minha senha</button>
+        </form>
+
+        <p class="settings-status" id="settings-status" role="status" hidden></p>
+    </main>
+
+    <dialog class="settings-dialog" id="delete-account-dialog" aria-labelledby="delete-account-title">
+        <form id="delete-account-form" method="post">
+            <h2 id="delete-account-title">Excluir sua conta?</h2>
+            <p>Esta ação é irreversível. Sua conta, seu perfil, suas preferências, suas publicações e respostas na comunidade e seus dados salvos neste dispositivo serão apagados.</p>
+            <label for="delete-account-password">Confirme sua senha</label>
+            <input id="delete-account-password" type="password" autocomplete="current-password" required>
+            <p class="settings-status" id="delete-account-status" role="status" hidden></p>
+            <button class="settings-danger-button" id="confirm-delete-account" type="submit">Excluir conta e dados</button>
+            <button class="settings-text-button" id="cancel-delete-account" type="button">Manter minha conta</button>
+        </form>
+    </dialog>
+
+    <td-bottom-nav active="perfil"></td-bottom-nav>
+    <script defer src="../scripts/components/bottom-nav.js"></script>
+    <script defer src="../scripts/pages/configuracoes.js"></script>
+</body>
+
+</html>

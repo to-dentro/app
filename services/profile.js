@@ -35,12 +35,33 @@ export async function saveRegistrationProfile({ displayName, preferences }) {
 }
 
 export async function updatePreferences(preferences) {
-  const { reference } = profileReference();
+  const { reference, user } = profileReference();
   const normalized = normalizePreferences(preferences);
   await runTransaction(db, async transaction => {
     const snapshot = await transaction.get(reference);
     if (!snapshot.exists()) throw Object.assign(new Error('Conclua seu cadastro antes de editar as preferências.'), {code:'profile/incomplete'});
-    transaction.update(reference, { preferences: normalized, updatedAt: serverTimestamp() });
+    transaction.update(reference, { preferences: normalized, email: user.email, updatedAt: serverTimestamp() });
   });
   return normalized;
+}
+
+export async function updateProfileIdentity(displayName) {
+  const { reference, user } = profileReference();
+  const name = displayName?.trim();
+  if (displayName !== undefined && (!name || name.length > 120)) {
+    throw Object.assign(new Error('Informe um nome com até 120 caracteres.'), { code: 'profile/invalid-name' });
+  }
+  return runTransaction(db, async transaction => {
+    const snapshot = await transaction.get(reference);
+    if (!snapshot.exists()) {
+      if (name) throw Object.assign(new Error('Conclua seu cadastro antes de editar seus dados.'), { code: 'profile/incomplete' });
+      return null;
+    }
+    const current = snapshot.data();
+    const nextName = name ?? current.displayName;
+    if (current.email !== user.email || current.displayName !== nextName) {
+      transaction.update(reference, { displayName: nextName, email: user.email, updatedAt: serverTimestamp() });
+    }
+    return { ...current, displayName: nextName, email: user.email };
+  });
 }

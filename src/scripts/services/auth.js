@@ -7,7 +7,9 @@
   const isAuthenticated = () => Boolean(user);
   const privatePages = {
     'perfil.html': ['Seu futuro começa com você.', 'Entre ou crie sua conta para ter seu perfil, guardar suas escolhas e acompanhar seus próximos passos.', 'person'],
-    'salvos.html': ['Suas escolhas merecem um lugar.', 'Entre ou crie sua conta para reunir universidades, cursos, comparações e seu resultado vocacional.', 'bookmark'],
+    'preferencias.html': ['Suas preferências.', 'Entre para editar as preferências do seu perfil.', 'tune'],
+    'configuracoes.html': ['Sua conta, do seu jeito.', 'Entre para acessar suas configurações ou excluir sua conta.', 'settings'],
+    'salvos.html': ['Suas escolhas merecem um lugar.', 'Entre ou crie sua conta para reunir universidades, cursos e comparações.', 'bookmark'],
     'teste-vocacional.html': ['Vamos descobrir seus caminhos?', 'Entre ou crie sua conta para fazer o teste vocacional e guardar seu mapa de interesses.', 'explore'],
     'quiz-vocacional.html': ['Vamos descobrir seus caminhos?', 'Entre ou crie sua conta para fazer o teste vocacional e guardar seu mapa de interesses.', 'explore'],
     'resultado-vocacional.html': ['Seu mapa, sempre com você.', 'Entre para consultar e salvar seu resultado vocacional.', 'explore'],
@@ -119,7 +121,7 @@
       service.observeAuth(nextUser => {
         const previousUid = user?.uid;
         user = nextUser;
-        if (!loading && previousUid !== user?.uid && !['cadastro.html', 'login.html'].includes(currentPage)) location.reload();
+        if (!loading && previousUid !== user?.uid && !['cadastro.html', 'login.html', 'configuracoes.html'].includes(currentPage)) location.reload();
       });
     } catch (error) {
       sessionError = error;

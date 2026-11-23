@@ -1,0 +1,133 @@
+.study-preferences-page {
+  padding-block: var(--space-6) calc(var(--bottom-nav-height) + var(--space-6));
+}
+.study-preferences-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+.study-preferences-back {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.study-preferences-page h1 {
+  margin: var(--space-3) 0 var(--space-2);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+}
+.study-preferences-intro, .study-selection-count {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+#preferences-status:empty { display: none; }
+#profile-preference-fields {
+  display: grid;
+  gap: var(--space-4);
+  margin-block: var(--space-5);
+}
+.study-preference {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+fieldset.study-preference { padding-top: 3rem; }
+.study-preference legend {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  font-weight: var(--font-weight-extrabold);
+}
+.study-preference summary {
+  cursor: pointer;
+  font-weight: var(--font-weight-extrabold);
+}
+.study-preference summary .study-selection-count {
+  margin-left: var(--space-2);
+  font-weight: normal;
+}
+.study-preference[open] summary { margin-bottom: var(--space-3); }
+.study-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: var(--color-background);
+  color: var(--color-text-muted);
+}
+.study-search:focus-within { outline: 2px solid var(--color-ink); }
+.study-search input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height);
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--color-text);
+}
+.study-option-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.study-option-chips button, .study-option-list label, .study-discovery {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+.study-option-chips button {
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.study-option-chips button[aria-pressed="true"] {
+  border-color: var(--color-ink);
+  background: var(--color-green);
+  font-weight: var(--font-weight-bold);
+}
+.study-option-list { display: grid; }
+.study-option-list label + label { border-top: 1px solid var(--color-border); }
+.study-option-list label, .study-discovery { padding-inline: var(--space-2); }
+.study-option-list label:has(input:checked), .study-discovery:has(input:checked) {
+  background: var(--color-green);
+  border-radius: .5rem;
+}
+.study-preference input[type="checkbox"] { flex: 0 0 auto; accent-color: var(--color-ink); }
+.study-course-area {
+  min-width: 0;
+  min-height: var(--control-height);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.study-more {
+  justify-self: start;
+  min-height: 2.75rem;
+  padding-inline: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.study-preferences-actions { display: flex; }
+.study-preferences-actions .button { width: 100%; }
