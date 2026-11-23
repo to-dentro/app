@@ -66,7 +66,6 @@
     if(selected.some(other=>other.key===item.key)){status.textContent='Esta opção, com esses critérios, já está na comparação.';return;}
     selected.push(item);emptyBuilder();persist();render();status.textContent='Opção adicionada. Preencha os campos para adicionar outra.';
   });
-  document.querySelector('#comparison-submit').addEventListener('click',()=>{if(selected.length>=2)location.href='./comparacao-notas.html?'+comparison.serialize(course.value,selected);});
-  if(params.has('referencia')||params.has('opcao'))document.querySelector('#comparison-back').href='./comparacao-notas.html?'+params;
-  else if(params.get('universidade'))document.querySelector('#comparison-back').href='./nota-de-corte.html?'+params;
+  document.querySelector('#comparison-submit').addEventListener('click',()=>{if(selected.length>=2){persist();location.href='./comparacao-notas.html?'+comparison.serialize(course.value,selected);}});
+  if(params.get('universidade'))document.querySelector('#comparison-back').href='./nota-de-corte.html?'+params;
 })();

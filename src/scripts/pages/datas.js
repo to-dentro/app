@@ -17,10 +17,8 @@
   document.querySelector('#admission-header').textContent = label;
   document.querySelector('#admission-context').textContent = [selection?.universityId ? university?.acronym : '', selection?.edition ? `Edição ${selection.edition}` : 'Edição não informada'].filter(Boolean).join(' · ');
   const back = new URL('./explorar-datas.html', location.href);
-  if (params.get('from')) {
-    const from = new URL(params.get('from'), location.href);
-    if (from.origin === back.origin && from.pathname === back.pathname) back.search = from.search;
-  }
+  const from = window.ToDentroNavigation.from(params, back);
+  if (from) back.search = from.search;
   document.querySelector('#admission-back').href = back.href;
   if (!selection) { document.querySelector('#admission-empty').hidden = false; return; }
   document.querySelector('#admission-note').textContent = 'Datas cadastradas na planilha do projeto. Horários não informados. Previsões não representam dias confirmados. Confira o calendário oficial antes de se inscrever.';

@@ -10,10 +10,8 @@
   for (const item of window.ToDentroUniversities) university.append(new Option(`${item.acronym} — ${item.name}`, item.id));
   university.value = params.get('universidade') || '';
   const back = new URL('./calendario.html', location.href);
-  if (params.get('from')) {
-    const from = new URL(params.get('from'), location.href);
-    if (from.origin === back.origin && from.pathname === back.pathname) back.search = from.search;
-  }
+  const from = window.ToDentroNavigation.from(params, back);
+  if (from) back.search = from.search;
   document.querySelector('#dates-back').href = back.href;
   function populate(selected = '') {
     const choices = catalog?.choicesForUniversity(university.value) || [];

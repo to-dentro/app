@@ -6,10 +6,8 @@
   const params = new URLSearchParams(location.search);
   const key = window.ToDentroAuth.storageKey('to-dentro-reminders');
   const back = new URL('./calendario.html', location.href);
-  if (params.get('from')) {
-    const from = new URL(params.get('from'), location.href);
-    if (from.origin === back.origin && from.pathname === back.pathname) back.search = from.search;
-  }
+  const from = window.ToDentroNavigation.from(params, back);
+  if (from) back.search = from.search;
   document.querySelector('#reminder-back').href = back.href;
   document.querySelector('#cancel-reminder').href = back.href;
   const form = document.querySelector('#reminder-form');
@@ -64,7 +62,7 @@
       destination.searchParams.set('categoria', 'lembretes');
       destination.searchParams.delete('universidade');
     }
-    location.href = destination.href;
+    window.ToDentroNavigation.returnTo(destination.href);
   }
   form.addEventListener('submit', event => {
     event.preventDefault();

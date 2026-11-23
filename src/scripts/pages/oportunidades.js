@@ -19,11 +19,8 @@
     const option = document.createElement('option'); option.value = university.acronym; option.label = university.name;
     document.querySelector('#opportunities-universities').append(option);
   }
-  if (params.get('from')) {
-    const from = new URL(params.get('from'), location.href);
-    const allowed = ['../../index.html', './universidade.html', './comunidade.html'].map(path => new URL(path, location.href));
-    if (allowed.some(url => url.origin === from.origin && url.pathname === from.pathname)) document.querySelector('#opportunities-back').href = from.href;
-  }
+  const from = window.ToDentroNavigation.from(params, '../../index.html', './universidade.html', './comunidade.html');
+  if (from) document.querySelector('#opportunities-back').href = from.href;
   function matches() {
     const terms = normalize(query.value).split(/\s+/).filter(Boolean);
     return universities.filter(university => terms.every(term => normalize(`${university.acronym} ${university.name} ${university.city}`).includes(term)));
