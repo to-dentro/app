@@ -17,7 +17,7 @@ Alterar o arquivo local não publica as regras automaticamente. Execute o site p
 
 `users/{uid}` armazena nome, e-mail, preferências, versão do perfil e timestamps. Somente o usuário autenticado correspondente pode ler e atualizar seu perfil. A senha é gerenciada pelo Authentication.
 
-As preferências usam IDs para tipos de instituição, cidades, modalidades, turnos, cursos, áreas e formas de ingresso. Cadastro, perfil e busca compartilham essas informações. Em caso de falha ao salvar, a interface informa o erro.
+As preferências usam IDs para tipos de instituição, cidades, modalidades, turnos, cursos, áreas e formas de ingresso. O cadastro e a tela Preferências do perfil gravam esses campos. A busca de universidades lê o perfil para preencher uma busca inicial e mantém os ajustes posteriores na URL.
 
 ## Catálogo público
 

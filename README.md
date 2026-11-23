@@ -33,7 +33,11 @@ firestore.rules     Regras de acesso para publicação no Firebase
 
 O catálogo de instituições, campi, cursos cadastrados, notas e datas de ingresso é consultado no Firestore. Algumas áreas ainda utilizam dados de demonstração, mantidos em `src/data/` porque são usados pela interface.
 
-Cadastro e login utilizam Firebase Authentication. Perfil e preferências são salvos no Firestore. As preferências são compartilhadas entre cadastro, perfil e busca. Salvos e lembretes pessoais utilizam o armazenamento local do navegador separado por usuário.
+Cadastro e login utilizam Firebase Authentication. Perfil e preferências são salvos no Firestore. As preferências do perfil podem preencher a busca inicial. Os filtros são temporários e não gravam no Firestore. Salvos e lembretes pessoais utilizam o armazenamento local do navegador separado por usuário.
+
+Relatos de experiência, dúvidas e respostas são publicados no Firestore em `communityPosts/{postId}` e `communityPosts/{postId}/replies/{replyId}`. A leitura é pública; a publicação exige login. Depois de atualizar `firestore.rules`, publique as regras no projeto Firebase para liberar a integração.
+
+O perfil oferece configurações de conta, encerramento de sessão e exclusão. Excluir a conta remove o perfil, as publicações e respostas da comunidade e os dados locais associados à conta neste navegador. Os termos de uso e a política de privacidade ficam disponíveis no app e no site institucional.
 
 O mapa usa Leaflet e OpenStreetMap. O calendário apresenta datas cadastradas e diferencia previsões de eventos com dia definido. A exportação para o calendário do celular ainda não está implementada.
 
