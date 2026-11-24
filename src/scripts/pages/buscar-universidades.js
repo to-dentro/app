@@ -97,7 +97,9 @@
         || !match('admission', university.admissionMethods || []);
       if (!card.hidden) visible.push({ ...item, score });
     }
-    visible.sort((a, b) => (sort.value === 'relevance' ? b.score - a.score : 0)
+    visible.sort((a, b) => (sort.value === 'acronym'
+      ? collator.compare(a.university.acronym || a.university.name, b.university.acronym || b.university.name)
+      : b.score - a.score)
       || collator.compare(a.university.name, b.university.name));
     for (const { card } of visible) list.append(card);
 
@@ -121,7 +123,7 @@
   }
 
   query.value = params.get('busca') || '';
-  sort.value = params.get('sort') === 'name' ? 'name' : 'relevance';
+  sort.value = ['acronym', 'name'].includes(params.get('sort')) ? 'acronym' : 'relevance';
   query.addEventListener('input', updateResults);
   sort.addEventListener('change', updateResults);
   filtersLink.addEventListener('click', event => {
