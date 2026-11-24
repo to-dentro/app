@@ -68,6 +68,15 @@
     document.querySelector('#course-careers').closest('section').hidden=true;
   }
   const ownScores=data.getScores({universityId:university.id,courseId:course.id});
+  const hasSharedSeats = offer => university.id === 'ufabc' && offer.sharedSeats;
+  const sharedSeats = [...new Set(offerings.filter(hasSharedSeats).map(offer => offer.seatsText).filter(Boolean))];
+  if (sharedSeats.length) {
+    const note = document.querySelector('#course-shared-seats');
+    note.querySelector('p').textContent = sharedSeats.map(text => text.replace(/\s*\/\s*ano\b/gi, ' por ano')).join(' · ')
+      + ', sem divisão por campus ou turno.';
+    note.hidden = false;
+  }
+  document.querySelector('#course-campus-note').hidden = offerings.every(hasSharedSeats);
   const campusIds=[...new Set(offerings.map(offer=>offer.campusId))];
   for(const campusId of campusIds){
     const campus=data.getCampus(university.id,campusId);
@@ -82,7 +91,7 @@
           ? `${offer.seats} vagas${offer.seatsPeriod === 'year' ? ' por ano' : ''}`
           : 'Vagas não informadas';
       const details = document.createElement('p');
-      details.textContent = [ui.period(offer.periodId), ui.duration(offer), seatLabel].join(' · ');
+      details.textContent = [ui.period(offer.periodId), ui.duration(offer), hasSharedSeats(offer) ? null : seatLabel].filter(Boolean).join(' · ');
       info.append(details);
     }
     const link=document.createElement('a');link.className='course-campus-map';
@@ -159,9 +168,26 @@
     if(saved!==null && [...select.children].some(option=>option.value===saved))select.value=saved;
   }
   renderScores();
-  const official=ui.safeUrl(shownOfferings.find(offer=>offer.officialSource)?.officialSource || university.coursesUrl || university.website);
-  document.querySelector('#course-official').href=official;
-  document.querySelector('#course-official-title').textContent=`Conheça o curso na ${university.acronym}`;
+  const officialLinks = new Map();
+  for (const offer of shownOfferings) {
+    const url = ui.safeUrl(offer.courseWebsiteUrl);
+    if (!url) continue;
+    if (!officialLinks.has(url)) officialLinks.set(url, new Set());
+    officialLinks.get(url).add(data.getCampus(university.id, offer.campusId)?.name || offer.campusId);
+  }
+  const fallbackUrl = [university.coursesUrl, university.website, ...shownOfferings.map(offer => offer.officialSource)]
+    .map(ui.safeUrl).find(Boolean);
+  const links = document.querySelector('#course-official-links');
+  const linkTemplate = document.querySelector('#course-official-template');
+  for (const [url, campuses] of officialLinks.size ? officialLinks : fallbackUrl ? [[fallbackUrl, new Set()]] : []) {
+    const link = linkTemplate.content.firstElementChild.cloneNode(true);
+    link.href = url;
+    link.querySelector('strong').textContent = officialLinks.size > 1
+      ? `${university.acronym} · ${[...campuses].join(' / ')}`
+      : `Veja mais no site da ${university.acronym}`;
+    links.append(link);
+  }
+  links.closest('section').hidden = !links.childElementCount;
   for (const element of document.querySelectorAll('[data-icon]')) element.innerHTML = icon(element.dataset.icon);
   const save = document.querySelector('#course-save');
   const key = window.ToDentroAuth.storageKey('to-dentro-saved-courses');

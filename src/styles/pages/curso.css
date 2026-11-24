@@ -262,6 +262,11 @@
     text-decoration: none;
 }
 
+.course-official-links {
+  display: grid;
+  gap: 10px;
+}
+
 .course-official {
     display: flex;
     gap: .875rem;

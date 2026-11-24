@@ -52,11 +52,16 @@
         <div class="course-careers" id="course-careers"></div>
       </section>
 
+      <aside class="course-campus-note" id="course-shared-seats" hidden>
+        <strong>Total de vagas</strong>
+        <p></p>
+      </aside>
+
       <section class="course-section" aria-labelledby="campuses-title">
         <h2 id="campuses-title">Campi que oferecem o curso</h2>
         <p class="course-section-description">Confira as ofertas por turno e selecione um campus para vê-lo no mapa.</p>
         <div class="course-campuses" id="course-campuses"></div>
-        <aside class="course-campus-note">
+        <aside class="course-campus-note" id="course-campus-note">
           <strong>Informações por campus</strong>
           <p>As vagas são específicas de cada campus e turno.</p>
         </aside>
@@ -106,14 +111,14 @@
 
       <section class="course-section" aria-labelledby="official-title">
         <h2 id="official-title">Continue no site oficial</h2>
-        <a class="course-panel course-official" id="course-official" target="_blank" rel="noopener noreferrer">
-          <span class="course-icon blue" data-icon="university"></span>
-          <span>
-            <strong id="course-official-title"></strong>
-            <small>Catálogo oficial e informações acadêmicas</small>
-          </span>
-          <span aria-hidden="true">↗</span>
-        </a>
+        <div class="course-official-links" id="course-official-links"></div>
+        <template id="course-official-template">
+          <a class="course-panel course-official" target="_blank" rel="noopener noreferrer">
+            <span class="course-icon blue" data-icon="university"></span>
+            <strong></strong>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </template>
       </section>
 
       <p class="course-status" id="course-status" role="status"></p>
