@@ -42,12 +42,14 @@
     const { campuses: nestedCampuses, admissionEditions, calendarEvents, communityPosts, ...item } = university;
     const primary = campusIndex.get(university.primaryCampusId);
     const ownOfferings = getOfferings({ universityId: university.id });
-    return { ...item, coordinates: primary.coordinates, mapLabel: primary.mapLabel,
+    return {
+      ...item, coordinates: primary.coordinates, mapLabel: primary.mapLabel,
       campusIds: nestedCampuses.map(campus => campus.id),
       mode: ownOfferings[0]?.modeId || null,
       periods: [...new Set(ownOfferings.map(offering => offering.periodId))],
       admissionMethods: [...new Set(university.admissionProcesses.map(process => process.method))],
-      courses: [...new Set(ownOfferings.map(offering => courseIndex.get(offering.courseId).name))] };
+      courses: [...new Set(ownOfferings.map(offering => courseIndex.get(offering.courseId).name))]
+    };
   });
   const universityIndex = index(universities);
   const categories = source.general.selectionCategories;
@@ -69,15 +71,19 @@
   }
   const communityPost = post => {
     const author = people.get(post.authorId);
-    return { ...post, author: author.name, initials: author.name.split(' ').map(part => part[0]).slice(0, 2).join(''),
+    return {
+      ...post, author: author.name, initials: author.name.split(' ').map(part => part[0]).slice(0, 2).join(''),
       course: courseIndex.get(post.courseId)?.name || '',
-      replies: post.replies.map(reply => ({ ...reply, author: people.get(reply.authorId).name })) };
+      replies: post.replies.map(reply => ({ ...reply, author: people.get(reply.authorId).name }))
+    };
   };
   const communityPosts = [...source.universities.flatMap(item => item.communityPosts), ...source.general.communityPosts].map(communityPost);
   const admissionDates = source.universities.flatMap(item => item.admissionEditions);
   const calendarEvents = source.universities.flatMap(item => item.calendarEvents);
-  const mapCampuses = campuses.filter(item => Array.isArray(item.coordinates)).map(item => ({ ...item,
-    courses: getOfferings({ universityId: item.universityId, campusId: item.id }).map(offering => courseIndex.get(offering.courseId).name) }));
+  const mapCampuses = campuses.filter(item => Array.isArray(item.coordinates)).map(item => ({
+    ...item,
+    courses: getOfferings({ universityId: item.universityId, campusId: item.id }).map(offering => courseIndex.get(offering.courseId).name)
+  }));
 
   function resolveSavedCourse(identity) {
     if (typeof identity !== 'string') return null;
@@ -86,7 +92,7 @@
     const [universityId, value] = identity.split(':');
     const course = courseIndex.get(courseId(value));
     const university = universityIndex.get(universityId);
-    if (!university || !course || !getOfferings({universityId,courseId:course.id}).length) return null;
+    if (!university || !course || !getOfferings({ universityId, courseId: course.id }).length) return null;
     return { university, course, offering: null, campus: null };
   }
 
@@ -122,58 +128,71 @@
       const processValue = params.get('processo') || 'enem';
       const selectedProcess = processes.find(item => [item.id, item.key, item.name].includes(processValue));
       const process = processes.find(item => item.universityId === university.id && item.method === (selectedProcess?.method || processValue));
-      const score = process && findScore({ universityId: university.id, campusId: offering.campusId, courseId: selectedCourse,
+      const score = process && findScore({
+        universityId: university.id, campusId: offering.campusId, courseId: selectedCourse,
         processId: process.id, edition: params.get('edicao') || 2026, category: params.get('modalidade') || 'Ampla concorrência',
-        period: params.get('turno') || 'Integral', context: 'comparison' });
-      return [{ ...option, id: university.id, university, campusId: offering.campusId, offeringId: offering.id,
-        index: option.campusIds.indexOf(offering.campusId), scoreId: score?.id || null, score: score?.value ?? null }];
+        period: params.get('turno') || 'Integral', context: 'comparison'
+      });
+      return [{
+        ...option, id: university.id, university, campusId: offering.campusId, offeringId: offering.id,
+        index: option.campusIds.indexOf(offering.campusId), scoreId: score?.id || null, score: score?.value ?? null
+      }];
     });
   }
 
   // Visões derivadas e índices em memória; os registros só são editados em mock-data.js.
   freeze(source);
   let activeUniversities = universities;
-  const views = freeze({ get universities() { return activeUniversities; }, campuses: mapCampuses, get courseCatalog() { return { areas, courses }; }, admissionDates,
-    calendarEvents, communityPosts, opportunities: source.general.opportunities });
-  const collections = freeze({ universities: source.universities.map(({ campuses, admissionEditions, calendarEvents, communityPosts, admissionProcesses, photos, ...record }) => ({...record, photoIds: (photos || []).map(photo => photo.id)})),
+  const views = freeze({
+    get universities() { return activeUniversities; }, campuses: mapCampuses, get courseCatalog() { return { areas, courses }; }, admissionDates,
+    calendarEvents, communityPosts, opportunities: source.general.opportunities
+  });
+  const collections = freeze({
+    universities: source.universities.map(({ campuses, admissionEditions, calendarEvents, communityPosts, admissionProcesses, photos, ...record }) => ({ ...record, photoIds: (photos || []).map(photo => photo.id) })),
     campuses, courses: source.courseCatalog, courseAreas: source.courseAreas, courseOfferings: offerings, cutoffScores,
     admissionProcesses: processes,
     admissionEditions: admissionDates.map(({ events, ...edition }) => edition), admissionEvents: admissionDates.flatMap(item => item.events),
-    calendarEvents, communityPosts: [...source.universities.flatMap(item => item.communityPosts), ...source.general.communityPosts].map(({replies,...post})=>post),
-    communityReplies: [...source.universities.flatMap(item => item.communityPosts), ...source.general.communityPosts].flatMap(item=>item.replies),
-    cities: source.general.cities, vocationalProfiles: source.general.vocationalProfiles, universityPhotos: source.universities.flatMap(item => item.photos || []), people: source.general.people, opportunities: source.general.opportunities, selectionCategories: source.general.selectionCategories, periods: source.general.periods, modes: source.general.modes });
-  window.ToDentroData = Object.freeze({ source, views, collections, normalize,
+    calendarEvents, communityPosts: [...source.universities.flatMap(item => item.communityPosts), ...source.general.communityPosts].map(({ replies, ...post }) => post),
+    communityReplies: [...source.universities.flatMap(item => item.communityPosts), ...source.general.communityPosts].flatMap(item => item.replies),
+    cities: source.general.cities, vocationalProfiles: source.general.vocationalProfiles, universityPhotos: source.universities.flatMap(item => item.photos || []), people: source.general.people, opportunities: source.general.opportunities, selectionCategories: source.general.selectionCategories, periods: source.general.periods, modes: source.general.modes
+  });
+  window.ToDentroData = Object.freeze({
+    source, views, collections, normalize,
     applyUniversities: records => {
       activeUniversities = freeze(records);
       universityIndex.clear();
       records.forEach(record => universityIndex.set(record.id, record));
     },
     applyAcademics: groups => {
-      const ids=new Set(groups.map(group=>group.universityId));
-      const merge=(old,records)=>freeze([...old.filter(item=>!ids.has(item.universityId)),...records]);
-      const liveCourses=groups.flatMap(group=>group.courses.map(course=>({ ...course, value: normalize(course.name), area:course.areaId, degree:course.degree || 'Bacharelado', dataSource:'firestore' })));
-      const liveCourseIndex=index(liveCourses);
+      const ids = new Set(groups.map(group => group.universityId));
+      const merge = (old, records) => freeze([...old.filter(item => !ids.has(item.universityId)), ...records]);
+      const liveCourses = groups.flatMap(group => group.courses.map(course => ({ ...course, value: normalize(course.name), area: course.areaId, degree: course.degree || 'Bacharelado', dataSource: 'firestore' })));
+      const liveCourseIndex = index(liveCourses);
       liveCourses.forEach(course => universityCourses.set(`${course.universityId}:${course.id}`, course));
-      courses=freeze([...courses.filter(course=>!liveCourseIndex.has(course.id)),...liveCourseIndex.values()]);
-      areas=freeze({...areas,...Object.fromEntries(groups.flatMap(group=>group.courses.map(course=>[course.areaId,course.area])))});
-      courseIndex.clear();courses.forEach(course=>courseIndex.set(course.id,course));
-      courses.forEach(course=>[course.id,course.value,normalize(course.name)].forEach(alias=>courseAliases.set(alias,course.id)));
-      const liveCampuses=groups.flatMap(group=>group.campuses.map(campus=>({ ...campus,
-        aliases:campusIndex.get(campus.id)?.aliases || [], label:campus.name,
-        comparisonOrder:campusIndex.get(campus.id)?.comparisonOrder,
-        coordinates:typeof campus.latitude==='number' && typeof campus.longitude==='number' ? [campus.latitude,campus.longitude] : null })));
-      campuses=merge(campuses,liveCampuses);campusIndex.clear();campusAliases.clear();
-      campuses.forEach(campus=>{campusIndex.set(campus.id,campus);[campus.id,...(campus.aliases||[])].forEach(alias=>campusAliases.set(`${campus.universityId}:${alias}`,campus));});
-      offerings=merge(offerings,groups.flatMap(group=>group.offerings.map(item=>({...item,dataSource:'firestore'}))));
-      offeringIndex.clear();offerings.forEach(offering=>offeringIndex.set(offering.id,offering));
-      processes=merge(processes,groups.flatMap(group=>group.processes.map(item=>({...item,key:item.id.slice(item.universityId.length+1),dataSource:'firestore'}))));
-      cutoffScores=merge(cutoffScores,groups.flatMap(group=>group.cutoffScores.map(item=>({...item,isMock:false,dataSource:'firestore'}))));
-      activeUniversities=freeze(activeUniversities.map(university=>!ids.has(university.id)?university:{...university,
-        courses:[...new Set(getOfferings({universityId:university.id}).map(offering=>courseIndex.get(offering.courseId).name))],
-        admissionMethods:[...new Set(processes.filter(item=>item.universityId===university.id).map(item=>item.method))]}));
-      universityIndex.clear();activeUniversities.forEach(university=>universityIndex.set(university.id,university));
+      courses = freeze([...courses.filter(course => !liveCourseIndex.has(course.id)), ...liveCourseIndex.values()]);
+      areas = freeze({ ...areas, ...Object.fromEntries(groups.flatMap(group => group.courses.map(course => [course.areaId, course.area]))) });
+      courseIndex.clear(); courses.forEach(course => courseIndex.set(course.id, course));
+      courses.forEach(course => [course.id, course.value, normalize(course.name)].forEach(alias => courseAliases.set(alias, course.id)));
+      const liveCampuses = groups.flatMap(group => group.campuses.map(campus => ({
+        ...campus,
+        aliases: campusIndex.get(campus.id)?.aliases || [], label: campus.name,
+        comparisonOrder: campusIndex.get(campus.id)?.comparisonOrder,
+        coordinates: typeof campus.latitude === 'number' && typeof campus.longitude === 'number' ? [campus.latitude, campus.longitude] : null
+      })));
+      campuses = merge(campuses, liveCampuses); campusIndex.clear(); campusAliases.clear();
+      campuses.forEach(campus => { campusIndex.set(campus.id, campus);[campus.id, ...(campus.aliases || [])].forEach(alias => campusAliases.set(`${campus.universityId}:${alias}`, campus)); });
+      offerings = merge(offerings, groups.flatMap(group => group.offerings.map(item => ({ ...item, dataSource: 'firestore' }))));
+      offeringIndex.clear(); offerings.forEach(offering => offeringIndex.set(offering.id, offering));
+      processes = merge(processes, groups.flatMap(group => group.processes.map(item => ({ ...item, key: item.id.slice(item.universityId.length + 1), dataSource: 'firestore' }))));
+      cutoffScores = merge(cutoffScores, groups.flatMap(group => group.cutoffScores.map(item => ({ ...item, isMock: false, dataSource: 'firestore' }))));
+      activeUniversities = freeze(activeUniversities.map(university => !ids.has(university.id) ? university : {
+        ...university,
+        courses: [...new Set(getOfferings({ universityId: university.id }).map(offering => courseIndex.get(offering.courseId).name))],
+        admissionMethods: [...new Set(processes.filter(item => item.universityId === university.id).map(item => item.method))]
+      }));
+      universityIndex.clear(); activeUniversities.forEach(university => universityIndex.set(university.id, university));
     },
-    getScores: (filter={}) => cutoffScores.map(score=>({...score,courseId:score.courseId || offeringIndex.get(score.offeringId)?.courseId})).filter(score=>Object.entries(filter).every(([key,value])=>value==null || score[key]===value)),
+    getScores: (filter = {}) => cutoffScores.map(score => ({ ...score, courseId: score.courseId || offeringIndex.get(score.offeringId)?.courseId })).filter(score => Object.entries(filter).every(([key, value]) => value == null || score[key] === value)),
     getUniversity: id => universityIndex.get(id) || null,
     getCourse: (value, universityId) => {
       const id = courseId(value);
@@ -183,7 +202,7 @@
     getCampuses: universityId => campuses.filter(item => item.universityId === universityId),
     getOfferings,
     getProcesses: universityId => processes.filter(item => item.universityId === universityId),
-    getProcess: (universityId, value) => processes.find(item=>item.universityId===universityId && [item.id,item.key,item.name].includes(value)) || null,
+    getProcess: (universityId, value) => processes.find(item => item.universityId === universityId && [item.id, item.key, item.name].includes(value)) || null,
     getCourseContent: value => courseIndex.get(courseId(value))?.content || source.general.courseContent,
     findScore, comparisonOptions, readComparison, resolveSavedCourse,
     // Cópia apenas de dados, sem funções ou objetos do SDK; nada é enviado ao banco.

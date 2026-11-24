@@ -11,7 +11,7 @@ export function buildAdmissionCatalog(records, universities = []) {
     const selection = { ...edition, name: definition.name, choiceId, events: [] };
     for (const event of events) {
       const projected = { ...event, entries: [] };
-      const reminderCategory = {registrationStart: 'inscricao', registrationEnd: 'inscricao', exams: 'prova', results: 'resultado'}[event.type] || 'pessoal';
+      const reminderCategory = { registrationStart: 'inscricao', registrationEnd: 'inscricao', exams: 'prova', results: 'resultado' }[event.type] || 'pessoal';
       const base = { universityId: definition.universityId, programId: definition.programId, process: definition.id, processName: definition.name, choiceId, edition: edition.edition, official: true, dataSource: 'firestore', reminderCategory, time: null, source: edition.officialSource };
       const blocked = event.type === 'exams' && edition.reviewIssueCodes?.includes('exam-phase-order');
       projected.needsReview = blocked;
@@ -32,7 +32,7 @@ export function buildAdmissionCatalog(records, universities = []) {
     }
     return selection;
   });
-  const choices = [...new Map(records.map(({definition}) => [definition.programId || definition.id, { id: definition.programId || definition.id, universityId: definition.universityId, programId: definition.programId, name: definition.name, relatedProgramIds: definition.relatedProgramIds || [] }])).values()];
+  const choices = [...new Map(records.map(({ definition }) => [definition.programId || definition.id, { id: definition.programId || definition.id, universityId: definition.universityId, programId: definition.programId, name: definition.name, relatedProgramIds: definition.relatedProgramIds || [] }])).values()];
   const globals = choices.filter(choice => choice.programId);
   function choicesForUniversity(id) {
     if (!id) return globals;
@@ -44,7 +44,7 @@ export function buildAdmissionCatalog(records, universities = []) {
     if (methods.includes('sisu')) related.add('sisu');
     const result = [...own.filter(choice => !choice.id.endsWith('-sisu')), ...globals.filter(choice => related.has(choice.id))];
     const priority = choice => choice.universityId && selections.some(item => item.choiceId === choice.id && item.events.length) ? 0 : choice.id === 'sisu' ? 1 : choice.programId ? 2 : 3;
-    return result.sort((a,b) => priority(a) - priority(b));
+    return result.sort((a, b) => priority(a) - priority(b));
   }
   return { selections, calendar, estimates, choices, choicesForUniversity };
 }
