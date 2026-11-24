@@ -1,5 +1,8 @@
 .university-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  justify-content: space-between;
   color: var(--color-text);
   text-decoration: none;
   padding: var(--space-4);
@@ -19,14 +22,39 @@
 }
 
 .university-logo {
+  position: relative;
   display: grid;
   flex-shrink: 0;
   place-items: center;
-  min-width: 3.5rem;
-  min-height: 2.5rem;
-  border-radius: var(--radius-pill);
+  width: clamp(3.5rem, 16vw, 6rem);
+  height: 4.5rem;
+  border-radius: .625rem;
+  color: var(--color-ink);
+  background: var(--color-blue);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-extrabold);
+}
+
+.university-card .university-logo-with-image {
+  background: white;
+}
+
+.university-logo-wide {
+  width: clamp(4.75rem, 22vw, 8.5rem);
+  height: 5.75rem;
+}
+
+td-university-card[university-id='usp'] .university-logo-wide {
+  width: clamp(5.75rem, 27vw, 10rem);
+}
+
+.university-logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: .25rem;
+  object-fit: contain;
 }
 
 .university-info h3 {
@@ -42,15 +70,6 @@
   font-size: var(--font-size-xs);
 }
 
-.university-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin: var(--space-2) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
 .tag {
   padding: var(--space-2);
   border-radius: var(--radius-pill);
@@ -60,8 +79,7 @@
 }
 
 
-.tag-blue,
-.university-logo {
+.tag-blue {
   background: var(--color-blue);
 }
 
@@ -73,22 +91,22 @@ td-university-card {
   display: block;
 }
 
-.university-card-featured {
-  border-radius: 1.125rem;
+.university-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: .75rem;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-extrabold);
 }
 
-.university-card-featured .university-featured-description {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-  margin-top: var(--space-1);
-}
-
-.university-card-featured .button {
-  margin-top: var(--space-2);
-  border-radius: 1rem;
-  justify-content: flex-start;
-  text-align: left;
-}
+.university-card-action-blue { background: var(--color-blue); }
+.university-card-action-green { background: var(--color-green); }
+.university-card-action-yellow { background: var(--color-yellow); }
 
 @media (hover: hover) {
   .university-card:hover {
