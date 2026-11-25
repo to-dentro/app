@@ -1,11 +1,9 @@
 (async () => {
   'use strict';
-  if (window.ToDentroCoursesReady) await window.ToDentroCoursesReady;
   // Impede envio nativo com senha na URL enquanto a sessão e os módulos carregam.
   for (const form of document.querySelectorAll('#signup-access-form, #signup-create-form')) form.addEventListener('submit', event => event.preventDefault());
-  await window.ToDentroAuth.ready;
   const appRoot = new URL('../../', location.href);
-  const { accountErrorMessage, accountDestination } = await import(new URL('services/account-ui.js', appRoot).href);
+  const loadAccountUI = () => import(new URL('services/account-ui.js', appRoot).href);
   const panels = [...document.querySelectorAll('[data-signup-step]')];
   const progress = document.querySelector('.signup-progress');
   const status = document.querySelector('.account-notice');
@@ -44,6 +42,7 @@
     event.preventDefault();
     if (validateAccess()) showStep(editingReview ? 6 : 2);
   });
+  accessForm.querySelector('[type="submit"]').disabled = false;
   for (const button of document.querySelectorAll('button[type="button"][data-signup-next]')) {
     button.addEventListener('click', () => showStep(Number(button.dataset.signupNext)));
   }
@@ -106,7 +105,7 @@
   function clearStudyPreferences() {
     for (const input of document.querySelectorAll('[name="study-mode"], [name="study-shift"]')) input.checked = false;
   }
-  const catalog = window.ToDentroCourseCatalog;
+  let catalog = window.ToDentroData.views.courseCatalog;
   const selectedCourses = new Set();
   const courseSearch = document.querySelector('#signup-course-search');
   const courseOptions = document.querySelector('#signup-course-options');
@@ -114,11 +113,14 @@
   const discoverCourses = document.querySelector('.signup-discover-courses');
   let selectedArea = '';
   const colors = ['blue', 'green', 'yellow'];
-  for (const [value, text] of [['', 'Todas'], ...Object.entries(catalog.areas)]) {
-    const button = document.createElement('button'); button.type = 'button'; button.textContent = text; button.dataset.area = value;
-    button.setAttribute('aria-pressed', String(value === selectedArea));
-    button.addEventListener('click', () => { selectedArea = value; courseOptions.scrollTop = 0; renderCourses(); });
-    courseAreas.append(button);
+  function renderAreas() {
+    courseAreas.replaceChildren();
+    for (const [value, text] of [['', 'Todas'], ...Object.entries(catalog.areas)]) {
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = text; button.dataset.area = value;
+      button.setAttribute('aria-pressed', String(value === selectedArea));
+      button.addEventListener('click', () => { selectedArea = value; courseOptions.scrollTop = 0; renderCourses(); });
+      courseAreas.append(button);
+    }
   }
   function renderCourses() {
     const scrollTop = courseOptions.scrollTop;
@@ -158,7 +160,14 @@
     if (active) clearCourses();
     discoverCourses.setAttribute('aria-pressed', String(active));
   });
+  renderAreas();
   renderCourses();
+  window.ToDentroCoursesReady?.then(() => {
+    catalog = window.ToDentroData.views.courseCatalog;
+    renderAreas();
+    renderCourses();
+    if (currentStep === 6) renderReview();
+  }).catch(() => { /* O catálogo local já está disponível para o cadastro. */ });
   for (const button of document.querySelectorAll('[data-signup-skip]')) {
     button.addEventListener('click', () => {
       const step = Number(button.closest('[data-signup-step]').dataset.signupStep);
@@ -247,7 +256,12 @@
     createButton.textContent = 'Salvando seu cadastro…';
     status.textContent = 'Criando sua conta e salvando suas preferências…';
     status.hidden = false;
+    let accountErrorMessage = () => 'Não foi possível conectar para concluir o cadastro. Tente novamente.';
     try {
+      const ui = await loadAccountUI();
+      accountErrorMessage = ui.accountErrorMessage;
+      await window.ToDentroAuth.ready;
+      if (window.ToDentroAuth.error) throw window.ToDentroAuth.error;
       const [authService, profileService, preferencesService, registrationService] = await Promise.all([
         import(new URL('services/auth.js', appRoot).href),
         import(new URL('services/profile.js', appRoot).href),
@@ -263,7 +277,7 @@
       await registration.register(input);
       password.value = ''; confirmation.value = '';
       status.textContent = 'Conta criada e preferências salvas! Abrindo seu perfil…';
-      location.assign(accountDestination(location.search, appRoot, 'src/pages/perfil.html'));
+      location.assign(ui.accountDestination(location.search, appRoot, 'src/pages/perfil.html'));
     } catch (error) {
       status.textContent = error.accountCreated
         ? `Sua conta já foi criada, mas falta concluir o perfil. ${accountErrorMessage(error)} Suas escolhas continuam nesta tela; tente concluir novamente.`
@@ -279,16 +293,19 @@
       input.password = '';
     }
   });
-  if (window.ToDentroAuth.user) {
-    resumeAuthenticatedUser(window.ToDentroAuth.user);
+  createButton.disabled = false;
+  window.ToDentroAuth.ready.then(async user => {
+    if (!user) return;
+    resumeAuthenticatedUser(user);
     try {
-      const { getProfile } = await import(new URL('services/profile.js', appRoot).href);
-      if (await getProfile()) location.replace(accountDestination(location.search, appRoot, 'src/pages/perfil.html'));
-    } catch (error) {
-      status.textContent = accountErrorMessage(error);
+      const [{ getProfile }, ui] = await Promise.all([import(new URL('services/profile.js', appRoot).href), loadAccountUI()]);
+      if (await getProfile() && !submitting) location.replace(ui.accountDestination(location.search, appRoot, 'src/pages/perfil.html'));
+    } catch {
+      if (submitting) return;
+      status.textContent = 'Não foi possível verificar seu perfil. Você pode tentar concluir o cadastro novamente.';
       status.hidden = false;
     }
-  }
+  });
   for (const button of document.querySelectorAll('[data-toggle-password]')) {
     const input = document.getElementById(button.getAttribute('aria-controls'));
     const description = input.id === 'signup-password' ? 'senha' : 'confirmação de senha';

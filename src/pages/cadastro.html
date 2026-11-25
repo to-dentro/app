@@ -29,7 +29,7 @@
             <span></span>
             <span></span>
         </div>
-        <form id="signup-access-form" data-signup-step="1" aria-labelledby="signup-access-title" novalidate>
+        <form id="signup-access-form" method="post" data-signup-step="1" aria-labelledby="signup-access-title" novalidate>
             <header class="login-header">
                 <h1 id="signup-access-title" tabindex="-1">Vamos começar?</h1>
                 <p>Primeiro, seus dados de acesso.</p>
@@ -87,7 +87,7 @@
                     <p>As próximas perguntas são opcionais.</p>
                 </div>
             </aside>
-            <button class="login-action login-enter signup-continue" type="submit" data-signup-next>Continuar <span
+            <button class="login-action login-enter signup-continue" type="submit" data-signup-next disabled>Continuar <span
                     aria-hidden="true">→</span></button>
             <p class="signup-login">Já tem uma conta? <a href="./login.html" data-account-link>Entrar</a></p>
         </form>
@@ -337,12 +337,12 @@
                 <h3>Suas escolhas podem mudar</h3>
                 <p>Você poderá editar ou completar suas preferências no perfil quando quiser.</p>
             </aside>
-            <form id="signup-create-form" novalidate>
+            <form id="signup-create-form" method="post" novalidate>
                 <label class="signup-terms"><input id="signup-terms" type="checkbox" required><span>Li e aceito os
                         <a href="./termos.html#termos" target="_blank" rel="noopener noreferrer">Termos de uso</a> e a
                         <a href="./termos.html#privacidade" target="_blank" rel="noopener noreferrer">Política de privacidade</a>.</span></label>
                 <button class="login-action login-enter signup-continue signup-option-continue" type="submit"
-                    data-signup-create>Criar minha conta</button>
+                    data-signup-create disabled>Criar minha conta</button>
             </form>
             <div class="signup-secondary-actions">
                 <button class="signup-muted" type="button" id="signup-clear-preferences">Limpar preferências</button>

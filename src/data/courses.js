@@ -4,20 +4,20 @@ if (typeof document !== 'undefined' && document.currentScript) {
   const root = new URL('../../', document.currentScript.src);
   const temporaryErrors = new Set(['unavailable', 'deadline-exceeded']);
 
-  async function readAcademics(getAcademics) {
+  async function readAcademics(getAcademics, universities) {
     try {
-      return await getAcademics(window.ToDentroUniversities);
+      return await getAcademics(universities);
     } catch (error) {
       if (!temporaryErrors.has(error.code)) throw error;
       await new Promise(resolve => setTimeout(resolve, 800));
-      return getAcademics(window.ToDentroUniversities);
+      return getAcademics(universities);
     }
   }
 
   window.ToDentroCoursesReady = (async () => {
     const localCourses = await import('./private-courses.js');
     const universitiesReady = window.ToDentroUniversitiesReady ? await window.ToDentroUniversitiesReady : true;
-    const universities = localCourses.addPrivateUniversities(window.ToDentroUniversities);
+    const universities = localCourses.addPrivateUniversities(window.ToDentroUniversities || window.ToDentroData.views.universities);
     const apply = records => {
       window.ToDentroData.applyUniversities(universities);
       window.ToDentroData.applyAcademics(localCourses.addPrivateCourses(records, universities, window.ToDentroData));
@@ -31,7 +31,7 @@ if (typeof document !== 'undefined' && document.currentScript) {
     }
     try {
       const service = await import(new URL('services/academics.js', root).href);
-      const records = await readAcademics(service.getAcademics);
+      const records = await readAcademics(service.getAcademics, universities);
       apply(records);
       return true;
     } catch (error) {
