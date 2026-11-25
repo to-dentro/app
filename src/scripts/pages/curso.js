@@ -108,7 +108,23 @@
     const years=document.createElement('span');years.textContent='Edições: '+[...new Set(ownScores.filter(score=>score.processId===process.id).map(score=>score.edition))].sort().join(', ');
     card.append(name,years);document.querySelector('#course-entry').append(card);
   }
-  if(!processes.length)document.querySelector('#course-entry').textContent='Consulte as formas de ingresso no site oficial da instituição.';
+  if (university.prouniUrl) {
+    const entry = document.querySelector('#course-entry');
+    const vestibular = document.createElement('li');
+    vestibular.className = 'course-entry-item';
+    vestibular.textContent = 'Vestibular digital próprio';
+    const item = document.createElement('li');
+    item.className = 'course-entry-item';
+    const link = document.createElement('a');
+    link.href = university.prouniUrl;
+    link.textContent = 'ProUni';
+    const note = document.createElement('span');
+    note.textContent = 'Consulte as bolsas disponíveis para o curso e o turno.';
+    item.append(link, note);
+    entry.append(vestibular, item);
+  } else if (!processes.length) {
+    document.querySelector('#course-entry').textContent = 'Consulte as formas de ingresso no site oficial da instituição.';
+  }
   if (university.public) {
     document.querySelector('.course-cutoff').hidden = false;
     const scoreFilters={

@@ -68,4 +68,113 @@ export const universityPhotos = {
       credit: 'Miniatura: Google Imagens',
     },
   ],
+  univesp: [
+    {
+      src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRURA3idk3Psl3ddPqoqBiXRmjDEQ2f0aNloRoPZUKbxxILZ6oDfC6zOB_5&s=10',
+      alt: 'Imagem da Univesp',
+      credit: 'Fonte: Google Imagens',
+    },
+    {
+      src: 'https://revistadoestudante.com.br/wp-content/uploads/2024/02/UNIVESP-Vestibular.jpeg',
+      alt: 'Imagem do vestibular da Univesp',
+      credit: 'Fonte: Revista do Estudante',
+    },
+  ],
+  'puc-sp': [
+    {
+      src: 'https://www.pucsp.br/sites/default/files/inline-images/campus-ipiranga.jpg',
+      alt: 'Campus Ipiranga da PUC-SP',
+      credit: 'Fonte: PUC-SP',
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6a459c451ea25804da590508%2F6a6ceb2d890109a8388ccb9f_Hero%20-%20LP_v2_poster.0000000.jpg',
+      alt: 'Imagem da PUC-SP',
+      credit: 'Fonte: Webflow CDN',
+    },
+    {
+      src: 'https://www.pucsp.br/sites/default/files/bloco_simples/capela-puc.jpg',
+      alt: 'Capela da PUC-SP',
+      credit: 'Fonte: PUC-SP',
+    },
+  ],
+  mackenzie: [
+    {
+      src: 'https://www.mackenzie.br/fileadmin/ARQUIVOS/Public/top/midias_noticias/noticias/2026/Not%C3%ADcias_Externas_Gest%C3%A3o_de_Conte%C3%BAdo/cpm.agnes.fachada.jpg',
+      alt: 'Fachada do Mackenzie',
+      credit: 'Fonte: Mackenzie',
+    },
+    {
+      src: 'https://www.mackenzie.br/fileadmin/_processed_/c/7/csm_Mackenzie_Bras%C3%ADlia_abre_processo_seletivo_para_1__semestre_de_2022_7614a1ef79.jpg',
+      alt: 'Unidade do Mackenzie em Brasília',
+      credit: 'Fonte: Mackenzie',
+    },
+    {
+      src: 'https://www.mackenzie.br/fileadmin/_processed_/5/9/csm_e_xpress%C3%A3o_liter%C3%A1ria_e_sua_abr__a43b6ac713.jpg',
+      alt: 'Imagem publicada pelo Mackenzie',
+      credit: 'Fonte: Mackenzie',
+    },
+  ],
+  faap: [
+    {
+      src: 'https://vestibular.faap.br/assets/images/home/home-hero.jpg',
+      alt: 'Imagem do vestibular da FAAP',
+      credit: 'Fonte: FAAP',
+    },
+    {
+      src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSo2rCZ9QjyB6Kod--LpvUE1bzJp2sYPYmHrKi1sSO6Ctq8hvXZCuXJ6k&s=10',
+      alt: 'Imagem da FAAP',
+      credit: 'Fonte: Google Imagens',
+    },
+    {
+      src: 'https://i.pinimg.com/736x/89/4e/c2/894ec25432a51c02c67465dedf637532.jpg',
+      alt: 'Foto da FAAP',
+      credit: 'Fonte: Pinterest',
+    },
+  ],
+  espm: [
+    {
+      src: 'https://www.espm.br/wp-content/uploads/cursos-espm-300x225.jpg',
+      alt: 'Imagem dos cursos da ESPM',
+      credit: 'Fonte: ESPM',
+    },
+    {
+      src: 'https://cpp.org.br/wp-content/uploads/2021/01/15d513491092702dfee8fd73425aa168-bcd.jpg',
+      alt: 'Imagem da ESPM publicada pelo CPP',
+      credit: 'Fonte: CPP',
+    },
+    {
+      src: 'https://abes.org.br/wp-content/uploads/2024/07/ESPM-1.jpg',
+      alt: 'Imagem da ESPM publicada pela ABES',
+      credit: 'Fonte: ABES',
+    },
+  ],
+  insper: [
+    {
+      src: 'https://ee.insper.edu.br/wp-content/uploads/sites/2/2026/03/LUIZ-GABRIEL-FRANCO-INSPER-27012026-38.jpg',
+      alt: 'Foto publicada pelo Insper',
+      credit: 'Fonte: Insper',
+    },
+    {
+      src: 'https://www.insper.edu.br/content/dam/insper-portal/imagens/campus/campus-insper-22.jpg',
+      alt: 'Vista do campus do Insper',
+      credit: 'Fonte: Insper',
+    },
+    {
+      src: 'https://www.insper.edu.br/content/dam/insper-portal/imagens/campus/_MG_1990.jpg',
+      alt: 'Outra vista do campus do Insper',
+      credit: 'Fonte: Insper',
+    },
+  ],
+  fiap: [
+    {
+      src: 'https://vivadigitalsa.com.br/wp-content/uploads/2019/11/indica5-27-11-1.jpg',
+      alt: 'Foto da FIAP publicada pela Viva Digital',
+      credit: 'Fonte: Viva Digital',
+    },
+    {
+      src: 'https://upload.wikimedia.org/wikipedia/commons/d/d3/Fiap-paulista-coworking.jpg',
+      alt: 'Espaço de coworking da FIAP Paulista',
+      credit: 'Fonte: Wikimedia Commons',
+    },
+  ],
 };

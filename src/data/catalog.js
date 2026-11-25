@@ -191,7 +191,10 @@
       activeUniversities = freeze(activeUniversities.map(university => !ids.has(university.id) ? university : {
         ...university,
         courses: [...new Set(getOfferings({ universityId: university.id }).map(offering => courseIndex.get(offering.courseId).name))],
-        admissionMethods: [...new Set(processes.filter(item => item.universityId === university.id).map(item => item.method))]
+        admissionMethods: [...new Set([
+          ...(university.public ? [] : (university.admissionMethods || [])),
+          ...processes.filter(item => item.universityId === university.id).map(item => item.method)
+        ])]
       }));
       universityIndex.clear(); activeUniversities.forEach(university => universityIndex.set(university.id, university));
     },

@@ -1,12 +1,24 @@
 import { universities, campuses, courseRows } from './private-course-data.js';
+import { universityPhotos } from './university-photos.js';
 
 const slug = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const periods = { matutino: 'manha', vespertino: 'tarde', noturno: 'noite' };
 
 export function addPrivateUniversities(records) {
-  return [...records, ...universities.filter(university =>
-    !records.some(record => record.id === university.id || slug(record.acronym) === university.id))];
+  const available = [...records, ...universities.filter(university =>
+    !records.some(record => record.id === university.id || slug(record.acronym) === university.id))
+    .map(university => ({ ...university, photos: universityPhotos[university.id] || university.photos }))];
+  return available.map(university => {
+    if (slug(university.acronym) !== 'fiap') return university;
+    const admission = university.admission || 'Vestibular digital próprio';
+    return {
+      ...university,
+      admission: /\bprouni\b/i.test(admission) ? admission : `${admission}; ProUni`,
+      admissionMethods: [...new Set([...(university.admissionMethods || []), 'vestibular', 'prouni'])],
+      prouniUrl: 'https://www.fiap.com.br/graduacao/financiamento/'
+    };
+  });
 }
 
 export function addPrivateCourses(groups, records, data) {
