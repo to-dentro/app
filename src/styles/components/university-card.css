@@ -57,6 +57,14 @@ td-university-card[university-id='usp'] .university-logo-wide {
   object-fit: contain;
 }
 
+td-university-card[university-id='usp'] .university-logo img {
+  transform: scale(.92);
+}
+
+td-university-card[university-id='unifesp'] .university-logo img {
+  transform: scale(1.12);
+}
+
 .university-info h3 {
   margin: 0;
   font-size: var(--font-size-base);

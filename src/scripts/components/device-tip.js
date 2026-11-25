@@ -1,9 +1,16 @@
-// Recomendação permanente no desktop e apresentação a cada carregamento da página.
+// Recomendação permanente no desktop e apresentação na primeira visita do navegador.
 const desktop = window.matchMedia('(min-width: 1024px)');
+const welcomeKey = 'to-dentro-desktop-welcome-seen';
 let welcomed = false;
 
+function hasSeenWelcome() {
+  if (welcomed) return true;
+  try { return localStorage.getItem(welcomeKey) === '1'; }
+  catch { return false; }
+}
+
 function showWelcome() {
-  if (welcomed || document.querySelector('.device-dialog') || typeof HTMLDialogElement === 'undefined') return;
+  if (hasSeenWelcome() || document.querySelector('.device-dialog') || typeof HTMLDialogElement === 'undefined') return;
   const dialog = document.createElement('dialog'); dialog.className = 'device-dialog';
   dialog.setAttribute('aria-labelledby', 'device-dialog-title');
   dialog.setAttribute('aria-describedby', 'device-dialog-description');
@@ -16,11 +23,13 @@ function showWelcome() {
   const button = document.createElement('button'); button.type = 'button'; button.className = 'button button-ink';
   button.textContent = 'Continuar no computador'; button.autofocus = true;
   button.addEventListener('click', () => dialog.close());
-  dialog.addEventListener('close', () => {
-    welcomed = true;
-    dialog.remove();
-  });
-  dialog.append(icon, title, description, button); document.body.append(dialog); dialog.showModal();
+  dialog.addEventListener('close', () => dialog.remove());
+  dialog.append(icon, title, description, button);
+  document.body.append(dialog);
+  dialog.showModal();
+  welcomed = true;
+  try { localStorage.setItem(welcomeKey, '1'); }
+  catch { /* A apresentação ainda aparece só uma vez nesta página. */ }
 }
 
 function showTip() {
