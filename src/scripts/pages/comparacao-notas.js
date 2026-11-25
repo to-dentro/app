@@ -44,20 +44,28 @@
     card.querySelector('.official').href=ui.safeUrl(item.reference.officialSource||item.site);
     document.getElementById('results-options').append(card);
   });
-  const storageKey = window.ToDentroAuth.storageKey('to-dentro-saved-comparisons');
+  const accountData = () => import('../../../services/user-saved-data.js');
   const identity = state.toString();
   const save = document.getElementById('results-save');
-  function readSaved() {
-    try { const value = JSON.parse(localStorage.getItem(storageKey) || '[]'); return Array.isArray(value) ? value.filter(item => typeof item === 'string') : []; } catch { return []; }
+  let saved = [];
+  if (window.ToDentroAuth.isAuthenticated()) {
+    try { saved = await (await accountData()).getSavedList('comparisons'); }
+    catch { set('results-status', 'Não foi possível carregar suas comparações salvas.'); }
   }
-  let saved = readSaved();
-  function updateSave() { const exists = window.ToDentroAuth.isAuthenticated() && saved.includes(identity); save.setAttribute('aria-pressed', String(exists)); set('results-save-label', exists ? 'Comparação salva' : 'Salvar comparação'); }
-  save.addEventListener('click', () => {
+  function updateSave() { const exists = saved.includes(identity); save.setAttribute('aria-pressed', String(exists)); set('results-save-label', exists ? 'Comparação salva' : 'Salvar comparação'); }
+  save.addEventListener('click', async () => {
     if (!window.ToDentroAuth.requireLogin('Entre para salvar esta comparação.')) return;
-    saved = readSaved();
-    if (saved.includes(identity)) { set('results-status', 'Esta comparação já está salva neste navegador.'); updateSave(); return; }
-    try { localStorage.setItem(storageKey, JSON.stringify([...saved, identity])); saved.push(identity); updateSave(); set('results-status', 'Comparação salva! Acesse pela aba Salvos.'); }
-    catch { set('results-status', 'Não foi possível salvar neste navegador. Tente novamente.'); }
+    save.disabled = true;
+    try {
+      saved = await (await accountData()).updateSavedList('comparisons', current =>
+        current.includes(identity) ? current : [...current, identity]);
+      updateSave();
+      set('results-status', 'Comparação salva! Acesse pela aba Salvos.');
+    } catch {
+      set('results-status', 'Não foi possível salvar na sua conta. Tente novamente.');
+    } finally {
+      save.disabled = false;
+    }
   });
   updateSave();
   document.getElementById('results-content').hidden = false;

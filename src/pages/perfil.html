@@ -41,6 +41,20 @@
             <p id="profile-encouragement-text">Estudar para o vestibular cansa. Você pode fazer uma pausa e retomar no seu ritmo.</p>
         </blockquote>
 
+        <section id="profile-vocational-result" aria-labelledby="profile-vocational-name" hidden>
+            <a class="profile-vocational-card" href="./resultado-vocacional.html"
+                aria-labelledby="profile-vocational-action profile-vocational-name">
+                <span class="profile-vocational-icon material-symbols-outlined" aria-hidden="true">explore</span>
+                <div class="profile-vocational-content">
+                    <p>Perfil vocacional</p>
+                    <h2 id="profile-vocational-name"></h2>
+                    <p id="profile-vocational-interests" hidden></p>
+                </div>
+                <span id="profile-vocational-action" class="visually-hidden">Ver meu resultado</span>
+                <span class="profile-vocational-arrow material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </a>
+        </section>
+
         <section class="profile-preferences" aria-labelledby="preferences-title">
             <div class="profile-preferences-header">
                 <h2 id="preferences-title">Preferências</h2>
@@ -75,6 +89,9 @@
     <script defer src="../data/courses.js"></script>
     <script defer src="../scripts/pages/perfil.js"></script>
     <script defer src="../scripts/components/external-links.js"></script>
+    <script defer src="../data/vocational-questions.js"></script>
+    <script defer src="../scripts/services/vocational.js"></script>
+    <script defer src="../scripts/components/vocational-summary.js"></script>
 </body>
 
 </html>

@@ -15,18 +15,27 @@ if (typeof document !== 'undefined' && document.currentScript) {
   }
 
   window.ToDentroCoursesReady = (async () => {
-    if (window.ToDentroUniversitiesReady && !await window.ToDentroUniversitiesReady) {
+    const localCourses = await import('./private-courses.js');
+    const universitiesReady = window.ToDentroUniversitiesReady ? await window.ToDentroUniversitiesReady : true;
+    const universities = localCourses.addPrivateUniversities(window.ToDentroUniversities);
+    const apply = records => {
+      window.ToDentroData.applyUniversities(universities);
+      window.ToDentroData.applyAcademics(localCourses.addPrivateCourses(records, universities, window.ToDentroData));
+      window.ToDentroCourseCatalog = window.ToDentroData.views.courseCatalog;
+      window.ToDentroUniversities = window.ToDentroData.views.universities;
+    };
+    if (!universitiesReady) {
       window.ToDentroCoursesError = window.ToDentroUniversitiesError;
+      apply([]);
       return false;
     }
     try {
       const service = await import(new URL('services/academics.js', root).href);
       const records = await readAcademics(service.getAcademics);
-      window.ToDentroData.applyAcademics(records);
-      window.ToDentroCourseCatalog = window.ToDentroData.views.courseCatalog;
-      window.ToDentroUniversities = window.ToDentroData.views.universities;
+      apply(records);
       return true;
     } catch (error) {
+      apply([]);
       window.ToDentroCoursesError = error;
       const notice = document.createElement('p');
       notice.setAttribute('role', 'alert');
@@ -35,7 +44,7 @@ if (typeof document !== 'undefined' && document.currentScript) {
         : temporaryErrors.has(error.code)
           ? 'Não foi possível conectar ao Firebase para carregar cursos e notas.'
           : 'Não foi possível carregar cursos e notas do Firebase.';
-      notice.textContent = `${reason} Exibindo os dados de demonstração. Recarregue para tentar novamente.`;
+      notice.textContent = `${reason} Exibindo os dados locais disponíveis. Recarregue para tentar novamente.`;
       document.querySelector('main')?.prepend(notice);
       return false;
     }

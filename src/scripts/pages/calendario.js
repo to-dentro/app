@@ -7,21 +7,28 @@
   const todayValue = part => todayParts.find(item => item.type === part).value;
   const today = `${todayValue('year')}-${todayValue('month')}-${todayValue('day')}`;
   let month = Number(todayValue('month')) - 1, year = Number(todayValue('year')), category = 'todos', selectedDay = null;
-  const storageKey = window.ToDentroAuth.storageKey('to-dentro-reminders');
+  const accountData = () => import('../../../services/user-saved-data.js');
   const validDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00`));
   let reminders = [];
-  try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    if (Array.isArray(saved)) reminders = saved.filter(item => item && typeof item.id === 'string' && typeof item.title === 'string' && validDate(item.date) && (!item.time || /^\d{2}:\d{2}$/.test(item.time)));
-  } catch { /* A criação continua disponível em memória. */ }
+  let savedDates = [];
+  async function loadSavedDates() {
+    if (!window.ToDentroAuth.isAuthenticated()) return;
+    const status = document.querySelector('#reminder-status');
+    try {
+      const { getSavedList } = await accountData();
+      const [personal, official] = await Promise.all([getSavedList('reminders'), getSavedList('calendarDates')]);
+      reminders = personal.filter(item => typeof item.title === 'string' && validDate(item.date)
+        && (!item.time || /^\d{2}:\d{2}$/.test(item.time)));
+      savedDates = official.filter(item => typeof item.title === 'string' && validDate(item.date)
+        && item.dataSource === 'firestore').map(item => ({ ...item, time: null }));
+      status.textContent = '';
+    } catch {
+      status.textContent = 'Não foi possível carregar seus lembretes. Recarregue a página para tentar novamente.';
+    }
+  }
   const personalEvents = () => reminders.map(item => ({ ...item, personal: true }));
   const kindLabels = { inscricao: 'Inscrição', prova: 'Prova', resultado: 'Resultado', estudo: 'Estudo', pessoal: 'Pessoal' };
   const eventKind = event => Object.hasOwn(kindLabels, event.reminderCategory) ? event.reminderCategory : 'pessoal';
-  let savedDates = [];
-  try {
-    const saved = JSON.parse(localStorage.getItem(window.ToDentroAuth.storageKey('to-dentro-calendar-dates')) || '[]');
-    if (Array.isArray(saved)) savedDates = saved.filter(item => item && typeof item.title === 'string' && validDate(item.date) && item.dataSource === 'firestore').map(item => ({ ...item, time: null }));
-  } catch { /* Os lembretes continuam disponíveis. */ }
   if (!window.ToDentroAuth.isAuthenticated()) {
     reminders = []; savedDates = [];
     document.title = 'Calendário de datas | Tô Dentro';
@@ -160,4 +167,10 @@
   universitySelect.addEventListener('change', () => { category = 'universidades'; selectedDay = null; jumpToSelection(); render(); });
   document.querySelector('#add-reminder').addEventListener('click', () => openReminder());
   render();
+  async function refreshSavedDates() {
+    await loadSavedDates();
+    render();
+  }
+  refreshSavedDates();
+  window.addEventListener('pageshow', event => { if (event.persisted) refreshSavedDates(); });
 })();

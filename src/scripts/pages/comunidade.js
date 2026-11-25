@@ -12,11 +12,16 @@
   } catch {
     communityLoadError = 'Não foi possível carregar os relatos compartilhados agora. Confira sua conexão e tente novamente.';
   }
-  let localPosts = [];
-  try {
-    const saved = JSON.parse(localStorage.getItem(window.ToDentroAuth.storageKey('to-dentro-community-posts')) || '[]');
-    if (Array.isArray(saved)) localPosts = saved.filter(post => post && typeof post.id === 'string' && typeof post.author === 'string' && typeof post.title === 'string' && typeof post.text === 'string' && ['experiencias', 'duvidas'].includes(post.category));
-  } catch { /* Relatos demonstrativos permanecem disponíveis. */ }
+  let localPosts = [], localReplies = [];
+  if (window.ToDentroAuth.isAuthenticated()) {
+    try {
+      const { getSavedList } = await import('../../../services/user-saved-data.js');
+      const [posts, replies] = await Promise.all([getSavedList('communityPosts'), getSavedList('communityReplies')]);
+      localPosts = posts.filter(post => typeof post.author === 'string' && typeof post.title === 'string' && typeof post.text === 'string'
+        && ['experiencias', 'duvidas'].includes(post.category));
+      localReplies = replies.filter(item => typeof item.questionId === 'string' && typeof item.text === 'string');
+    } catch { /* Os relatos públicos e demonstrativos continuam disponíveis. */ }
+  }
   const universityId = params.get('universidade');
   const university = window.ToDentroUniversities.find(item => item.id === universityId);
   const feed = document.querySelector('#community-feed');
@@ -37,11 +42,6 @@
     questionUniversity.append(new Option(item.acronym, item.id));
   }
   questionUniversity.value = university?.id || '';
-  let localReplies = [];
-  try {
-    const saved = JSON.parse(localStorage.getItem(window.ToDentroAuth.storageKey('to-dentro-community-replies')) || '[]');
-    if (Array.isArray(saved)) localReplies = saved.filter(item => item && typeof item.questionId === 'string' && typeof item.text === 'string');
-  } catch { /* A lista continua disponível sem respostas locais. */ }
 
   if (university) {
     const fallback = new URL('./universidade.html', location.href);

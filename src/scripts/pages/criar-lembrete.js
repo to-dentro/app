@@ -4,7 +4,7 @@
   await window.ToDentroAuth.ready;
   if (window.ToDentroAuth.isRestrictedPage()) return;
   const params = new URLSearchParams(location.search);
-  const key = window.ToDentroAuth.storageKey('to-dentro-reminders');
+  const accountData = () => import('../../../services/user-saved-data.js');
   const back = new URL('./calendario.html', location.href);
   const from = window.ToDentroNavigation.from(params, back);
   if (from) back.search = from.search;
@@ -19,15 +19,15 @@
   const description = document.querySelector('#reminder-description');
   const status = document.querySelector('#reminder-status');
   for (const item of window.ToDentroUniversities) university.append(new Option(item.acronym, item.id));
-  function read() {
-    const value = JSON.parse(localStorage.getItem(key) || '[]');
-    if (!Array.isArray(value)) throw new Error('Invalid reminders');
-    return value.filter(item => item && typeof item.id === 'string');
-  }
-  let reminders;
-  try { reminders = read(); } catch {
-    status.textContent = 'Não foi possível acessar seus lembretes. Tente novamente antes de salvar.';
-    reminders = [];
+  let reminders = [];
+  try {
+    reminders = await (await accountData()).getSavedList('reminders');
+  } catch {
+    status.textContent = 'Não foi possível carregar seus lembretes. Recarregue a página para tentar novamente.';
+    if (params.has('id')) {
+      form.querySelector('button[type="submit"]').disabled = true;
+      return;
+    }
   }
   const reminder = reminders.find(item => item.id === params.get('id'));
   if (params.has('id') && !reminder) {
@@ -47,13 +47,19 @@
     date.value = /^\d{4}-\d{2}-\d{2}$/.test(params.get('data') || '') ? params.get('data') : '';
   }
   title.addEventListener('input', () => title.setCustomValidity(''));
-  function save(update, selectedDate) {
+  const submit = form.querySelector('button[type="submit"]');
+  const remove = document.querySelector('#delete-reminder');
+  async function save(update, selectedDate) {
+    if (submit.disabled) return;
+    submit.disabled = remove.disabled = true;
     try {
-      const latest = read();
-      if (reminder && !latest.some(item => item.id === reminder.id)) throw new Error('Missing reminder');
-      localStorage.setItem(key, JSON.stringify(update(latest)));
+      await (await accountData()).updateSavedList('reminders', latest => {
+        if (reminder && !latest.some(item => item.id === reminder.id)) throw new Error('Missing reminder');
+        return update(latest);
+      });
     } catch {
-      status.textContent = 'Não foi possível salvar no navegador. Seus dados continuam no formulário; tente novamente.';
+      status.textContent = 'Não foi possível salvar na sua conta. Seus dados continuam no formulário.';
+      submit.disabled = remove.disabled = false;
       return;
     }
     const destination = new URL(back.href);

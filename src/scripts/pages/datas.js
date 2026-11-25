@@ -33,8 +33,15 @@
     const fee = document.createElement('p'); fee.textContent = `Taxa informada: ${selection.fee.text}${selection.fee.isFree ? ' (gratuito)' : ' — valores em reais; confira as condições no edital.'}`; list.before(fee);
   }
   document.querySelector('#admission-empty').hidden = selection.events.length > 0;
-  const key = window.ToDentroAuth.storageKey('to-dentro-calendar-dates');
-  const read = () => { const saved = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(saved) ? saved : []; };
+  const accountData = () => import('../../../services/user-saved-data.js');
+  let saved = [];
+  const status = document.querySelector('#admission-status');
+  if (window.ToDentroAuth.isAuthenticated()) {
+    try { saved = await (await accountData()).getSavedList('calendarDates'); }
+    catch { status.textContent = 'Não foi possível consultar suas datas salvas.'; }
+  }
+  const saveButtons = [];
+  let saving = false;
   for (const event of selection.events) {
     const card = document.createElement('article'); card.className = 'admission-date-card';
     const title = document.createElement('h2'); title.textContent = event.title; card.append(title);
@@ -59,16 +66,27 @@
     if (event.entries.length) {
       const button = document.createElement('button'); button.type = 'button'; button.className = 'button button-yellow'; button.dataset.authAction = 'calendar';
       function update() {
-        let added = false;
-        try { added = window.ToDentroAuth.isAuthenticated() && event.entries.every(entry => read().some(item => item.id === entry.id)); } catch { /* Salvar continua disponível. */ }
-        button.disabled = added; button.textContent = added ? 'Salvo nos meus lembretes' : 'Salvar nos meus lembretes';
+        const added = event.entries.every(entry => saved.some(item => item.id === entry.id));
+        button.disabled = saving || added;
+        button.textContent = added ? 'Salvo nos meus lembretes' : 'Salvar nos meus lembretes';
       }
-      button.addEventListener('click', () => {
+      saveButtons.push(update);
+      button.addEventListener('click', async () => {
         if (!window.ToDentroAuth.requireLogin('Entre para salvar datas no seu calendário.')) return;
+        saving = true;
+        saveButtons.forEach(refresh => refresh());
         try {
-          const saved = read(); localStorage.setItem(key, JSON.stringify([...saved, ...event.entries.filter(entry => !saved.some(item => item.id === entry.id))])); update();
-          document.querySelector('#admission-status').textContent = 'Data salva nos seus lembretes do calendário.';
-        } catch { document.querySelector('#admission-status').textContent = 'Não foi possível salvar no navegador. Tente novamente.'; }
+          const entries = event.entries.map(entry =>
+            Object.fromEntries(Object.entries(entry).filter(([, value]) => value !== undefined)));
+          saved = await (await accountData()).updateSavedList('calendarDates', current =>
+            [...current, ...entries.filter(entry => !current.some(item => item.id === entry.id))]);
+          status.textContent = 'Data salva nos seus lembretes do calendário.';
+        } catch {
+          status.textContent = 'Não foi possível salvar na sua conta. Tente novamente.';
+        } finally {
+          saving = false;
+          saveButtons.forEach(refresh => refresh());
+        }
       });
       update(); card.append(button);
     }

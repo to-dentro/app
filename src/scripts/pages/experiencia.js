@@ -6,10 +6,12 @@
   const appRoot = new URL('../../', location.href);
   const { getCommunityPost } = await import(new URL('services/community.js', appRoot).href);
   let localPosts = [];
-  try {
-    const saved = JSON.parse(localStorage.getItem(window.ToDentroAuth.storageKey('to-dentro-community-posts')) || '[]');
-    if (Array.isArray(saved)) localPosts = saved;
-  } catch { /* Os exemplos continuam disponíveis sem armazenamento. */ }
+  if (window.ToDentroAuth.isAuthenticated()) {
+    try {
+      const { getSavedList } = await import('../../../services/user-saved-data.js');
+      localPosts = await getSavedList('communityPosts');
+    } catch { /* Os relatos públicos e demonstrativos continuam disponíveis. */ }
+  }
   let post = [...window.ToDentroCommunity, ...localPosts].find(item => item && item.id === params.get('id') && typeof item.title === 'string' && typeof item.text === 'string' && typeof item.author === 'string');
   let loadError = false;
   if (!post) {

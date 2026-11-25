@@ -30,7 +30,7 @@ export async function saveRegistrationProfile({ displayName, preferences }) {
       createdAt: existing?.createdAt || serverTimestamp(),
       termsAcceptedAt: existing?.termsAcceptedAt || serverTimestamp(),
       updatedAt: serverTimestamp(),
-    });
+    }, { merge: true });
   });
 }
 

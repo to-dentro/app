@@ -10,7 +10,7 @@
   const catalog = window.ToDentroData;
   const note = document.querySelector('#search-filter-note');
   const searchHasFilters = fields.some(name => params.has(name)) || params.has('region');
-  if (window.ToDentroAuth.isAuthenticated() && !searchHasFilters) {
+  if (window.ToDentroAuth.isAuthenticated() && !searchHasFilters && !params.get('busca')?.trim()) {
     try {
       const root = new URL('../../', location.href);
       const { loadSearchPreferences } = await import(new URL('services/search-preferences.js', root).href);

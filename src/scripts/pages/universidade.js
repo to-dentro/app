@@ -139,22 +139,45 @@
   document.querySelector('#university-content').hidden = false;
   const saveButton = document.querySelector('#save-university');
   saveButton.hidden = false;
+  const accountData = () => import('../../../services/user-saved-data.js');
+  let saved = false;
   function updateSaved() {
-    const saved = window.ToDentroSaved.getUniversities().includes(university.id);
     saveButton.setAttribute('aria-pressed', String(saved));
     const label = saved ? 'Remover universidade dos salvos' : 'Salvar universidade';
     saveButton.setAttribute('aria-label', label);
     saveButton.title = label;
   }
-  saveButton.addEventListener('click', () => {
-    const result = window.ToDentroSaved.toggleUniversity(university.id);
-    if (!result) return;
-    updateSaved();
-    const status = document.querySelector('#save-status');
-    status.classList.toggle('visually-hidden', result.persisted);
-    status.textContent = !result.persisted ? 'O navegador não permitiu guardar a alteração. Ela vale apenas nesta página.'
-      : result.saved ? 'Universidade salva nas suas escolhas.' : 'Universidade removida das suas escolhas.';
+  const status = document.querySelector('#save-status');
+  saveButton.addEventListener('click', async () => {
+    if (!window.ToDentroAuth.requireLogin('Entre para salvar universidades.')) return;
+    saveButton.disabled = true;
+    try {
+      const { updateSavedList } = await accountData();
+      const ids = await updateSavedList('universities', current => current.includes(university.id)
+        ? current.filter(id => id !== university.id)
+        : [...current, university.id]);
+      saved = ids.includes(university.id);
+      updateSaved();
+      status.classList.add('visually-hidden');
+      status.textContent = saved ? 'Universidade salva nas suas escolhas.' : 'Universidade removida das suas escolhas.';
+    } catch {
+      status.classList.remove('visually-hidden');
+      status.textContent = 'Não foi possível atualizar seus salvos. Tente novamente.';
+    } finally {
+      saveButton.disabled = false;
+    }
   });
   await window.ToDentroAuth.ready;
+  if (window.ToDentroAuth.isAuthenticated()) {
+    saveButton.disabled = true;
+    try {
+      saved = (await (await accountData()).getSavedList('universities')).includes(university.id);
+    } catch {
+      status.classList.remove('visually-hidden');
+      status.textContent = 'Não foi possível carregar seus salvos.';
+    } finally {
+      saveButton.disabled = false;
+    }
+  }
   updateSaved();
 })();

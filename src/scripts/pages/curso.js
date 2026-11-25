@@ -21,6 +21,7 @@
     clock: '<circle cx="12" cy="12" r="10"/><path d="M12 5v7l5 3"/>',
     document: '<path d="M5 2h9l5 5v15H5V2Zm9 0v6h5M8 12h8m-8 4h8"/>',
     chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4m6-4v4M9 18v4m6-4v4M2 9h4m-4 6h4m12-6h4m-4 6h4"/>',
+    wallet: '<rect x="2" y="5" width="20" height="15" rx="3"/><path d="M16 11h6m-4 3h.01"/>',
     chart: '<path d="M3 3v18h19M6 15l5-6 5 3 6-9"/>',
     screen: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M12 17v5m-6 0h12"/>',
     science: '<path d="M8 2h8m-6 0v8L4 20q-1 2 2 2h12q3 0 2-2l-6-10V2M7 16h10"/>'
@@ -62,12 +63,12 @@
   }
   renderItems('#course-subjects', content.subjects);
   renderItems('#course-careers', content.careers);
-  if(offerings.some(offer=>offer.dataSource==='firestore')) {
+  if (offerings.some(offer => offer.dataSource === 'firestore' || offer.dataSource === 'spreadsheet')) {
     document.querySelector('.course-intro').hidden=true;
     document.querySelector('#course-subjects').closest('section').hidden=true;
     document.querySelector('#course-careers').closest('section').hidden=true;
   }
-  const ownScores=data.getScores({universityId:university.id,courseId:course.id});
+  const ownScores = university.public ? data.getScores({ universityId: university.id, courseId: course.id }) : [];
   const hasSharedSeats = offer => university.id === 'ufabc' && offer.sharedSeats;
   const sharedSeats = [...new Set(offerings.filter(hasSharedSeats).map(offer => offer.seatsText).filter(Boolean))];
   if (sharedSeats.length) {
@@ -108,66 +109,94 @@
     card.append(name,years);document.querySelector('#course-entry').append(card);
   }
   if(!processes.length)document.querySelector('#course-entry').textContent='Consulte as formas de ingresso no site oficial da instituição.';
-  const scoreFilters={
-    campus:document.querySelector('#course-score-campus'),
-    category:document.querySelector('#course-score-category'),
-    process:document.querySelector('#course-score-process')
-  };
-  const fill=(select,label,entries)=>{
-    const option=(value,text)=>{const node=document.createElement('option');node.value=value;node.textContent=text;return node;};
-    select.replaceChildren(option('',label),...entries.map(([value,text])=>option(value,text)));
-    select.value='';
-  };
-  fill(scoreFilters.campus,'Todos os campi',campusIds.filter(id=>ownScores.some(score=>score.campusId===id)).map(id=>[id,data.getCampus(university.id,id)?.name||id]));
-  fill(scoreFilters.category,'Todas as modalidades',[...new Set(ownScores.map(score=>score.selectionCategoryId))].map(id=>[id,ui.category(id)]));
-  fill(scoreFilters.process,'Todos os processos',processes.map(process=>[process.id,process.name]));
-  const scoreContainer=document.querySelector('#course-scores');
-  const scoreMessage=document.querySelector('#course-score-message');
-  function renderScores(){
-    scoreContainer.replaceChildren();
-    const active=Object.values(scoreFilters).some(select=>select.value);
-    const matches=ownScores.filter(score=>(!scoreFilters.campus.value || score.campusId===scoreFilters.campus.value)
-      && (!scoreFilters.category.value || score.selectionCategoryId===scoreFilters.category.value)
-      && (!scoreFilters.process.value || score.processId===scoreFilters.process.value));
-    const previewURL=new URL(location.href);
+  if (university.public) {
+    document.querySelector('.course-cutoff').hidden = false;
+    const scoreFilters={
+      campus:document.querySelector('#course-score-campus'),
+      category:document.querySelector('#course-score-category'),
+      process:document.querySelector('#course-score-process')
+    };
+    const fill=(select,label,entries)=>{
+      const option=(value,text)=>{const node=document.createElement('option');node.value=value;node.textContent=text;return node;};
+      select.replaceChildren(option('',label),...entries.map(([value,text])=>option(value,text)));
+      select.value='';
+    };
+    fill(scoreFilters.campus,'Todos os campi',campusIds.filter(id=>ownScores.some(score=>score.campusId===id)).map(id=>[id,data.getCampus(university.id,id)?.name||id]));
+    fill(scoreFilters.category,'Todas as modalidades',[...new Set(ownScores.map(score=>score.selectionCategoryId))].map(id=>[id,ui.category(id)]));
+    fill(scoreFilters.process,'Todos os processos',processes.map(process=>[process.id,process.name]));
+    const scoreContainer=document.querySelector('#course-scores');
+    const scoreMessage=document.querySelector('#course-score-message');
+    function renderScores(){
+      scoreContainer.replaceChildren();
+      const active=Object.values(scoreFilters).some(select=>select.value);
+      const matches=ownScores.filter(score=>(!scoreFilters.campus.value || score.campusId===scoreFilters.campus.value)
+        && (!scoreFilters.category.value || score.selectionCategoryId===scoreFilters.category.value)
+        && (!scoreFilters.process.value || score.processId===scoreFilters.process.value));
+      const previewURL=new URL(location.href);
+      for(const [key,select] of Object.entries(scoreFilters)){
+        if(select.value)previewURL.searchParams.set(`nota-${key}`,select.value);
+        else previewURL.searchParams.delete(`nota-${key}`);
+      }
+      if(previewURL.href!==location.href)window.history?.replaceState(window.history.state,'',previewURL.pathname+previewURL.search+previewURL.hash);
+      const context={universidade:university.id,curso:course.id,from:previewURL.pathname+previewURL.search};
+      if(scoreFilters.campus.value)context.campus=scoreFilters.campus.value;
+      if(scoreFilters.category.value)context.modalidade=scoreFilters.category.value;
+      if(scoreFilters.process.value)context.processo=scoreFilters.process.value;
+      const years=[...new Set(matches.map(score=>score.edition))];
+      if(years.length===1)context.edicao=years[0];
+      document.querySelector('#course-cutoff-link').href=`./buscar-nota-de-corte.html?${new URLSearchParams(context)}`;
+      scoreMessage.hidden=false;
+      scoreMessage.textContent=!ownScores.length?'Nenhuma nota cadastrada para este curso.':!active?'Selecione pelo menos um filtro para consultar as notas.':!matches.length?'Nenhuma nota cadastrada para essa combinação de filtros.':`${matches.length} ${matches.length===1?'referência encontrada':'referências encontradas'}.`;
+      if(!active || !matches.length)return;
+    for(const offer of offerings){
+      const scores=matches.filter(score=>score.offeringId===offer.id);
+      if(!scores.length)continue;
+      const panel=document.createElement('article');panel.className='course-score-panel';
+      const heading=document.createElement('h3');heading.textContent=`${data.getCampus(university.id,offer.campusId)?.name || offer.campusId} · ${ui.period(offer.periodId)}`;panel.append(heading);
+      for(const score of scores){
+        const row=document.createElement('a');row.className='course-score-row';
+        row.href=`./nota-de-corte.html?${new URLSearchParams({universidade:university.id,curso:course.id,oferta:offer.id,campus:offer.campusId,processo:score.processId,edicao:score.edition,modalidade:score.selectionCategoryId,turno:offer.periodId,fase:score.stageId||''})}`;
+        const context=document.createElement('span');context.textContent=[data.getProcess(university.id,score.processId)?.name,score.edition,ui.category(score.selectionCategoryId),score.stageId?ui.stage(score.stageId):null].filter(Boolean).join(' · ');
+        const value=document.createElement('strong');value.textContent=ui.score(score);row.append(context,value);panel.append(row);
+      }
+      document.querySelector('#course-scores').append(panel);
+    }
+    }
+    Object.values(scoreFilters).forEach(select=>select.addEventListener('change',renderScores));
+    document.querySelector('#course-score-filters').addEventListener('submit',event=>{event.preventDefault();renderScores();});
+    document.querySelector('#course-score-clear').addEventListener('click',()=>{Object.values(scoreFilters).forEach(select=>{select.value='';});renderScores();});
+    if(selectedOffering)scoreFilters.campus.value=selectedOffering.campusId;
     for(const [key,select] of Object.entries(scoreFilters)){
-      if(select.value)previewURL.searchParams.set(`nota-${key}`,select.value);
-      else previewURL.searchParams.delete(`nota-${key}`);
+      const saved=params.get(`nota-${key}`);
+      if(saved!==null && [...select.children].some(option=>option.value===saved))select.value=saved;
     }
-    if(previewURL.href!==location.href)window.history?.replaceState(window.history.state,'',previewURL.pathname+previewURL.search+previewURL.hash);
-    const context={universidade:university.id,curso:course.id,from:previewURL.pathname+previewURL.search};
-    if(scoreFilters.campus.value)context.campus=scoreFilters.campus.value;
-    if(scoreFilters.category.value)context.modalidade=scoreFilters.category.value;
-    if(scoreFilters.process.value)context.processo=scoreFilters.process.value;
-    const years=[...new Set(matches.map(score=>score.edition))];
-    if(years.length===1)context.edicao=years[0];
-    document.querySelector('#course-cutoff-link').href=`./buscar-nota-de-corte.html?${new URLSearchParams(context)}`;
-    scoreMessage.hidden=false;
-    scoreMessage.textContent=!ownScores.length?'Nenhuma nota cadastrada para este curso.':!active?'Selecione pelo menos um filtro para consultar as notas.':!matches.length?'Nenhuma nota cadastrada para essa combinação de filtros.':`${matches.length} ${matches.length===1?'referência encontrada':'referências encontradas'}.`;
-    if(!active || !matches.length)return;
-  for(const offer of offerings){
-    const scores=matches.filter(score=>score.offeringId===offer.id);
-    if(!scores.length)continue;
-    const panel=document.createElement('article');panel.className='course-score-panel';
-    const heading=document.createElement('h3');heading.textContent=`${data.getCampus(university.id,offer.campusId)?.name || offer.campusId} · ${ui.period(offer.periodId)}`;panel.append(heading);
-    for(const score of scores){
-      const row=document.createElement('a');row.className='course-score-row';
-      row.href=`./nota-de-corte.html?${new URLSearchParams({universidade:university.id,curso:course.id,oferta:offer.id,campus:offer.campusId,processo:score.processId,edicao:score.edition,modalidade:score.selectionCategoryId,turno:offer.periodId,fase:score.stageId||''})}`;
-      const context=document.createElement('span');context.textContent=[data.getProcess(university.id,score.processId)?.name,score.edition,ui.category(score.selectionCategoryId),score.stageId?ui.stage(score.stageId):null].filter(Boolean).join(' · ');
-      const value=document.createElement('strong');value.textContent=ui.score(score);row.append(context,value);panel.append(row);
+    renderScores();
+  } else {
+    document.querySelector('#course-tuition').hidden = false;
+    const tuitionValues = document.querySelector('#course-tuition-values');
+    const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    for (const campusId of new Set(shownOfferings.map(offer => offer.campusId))) {
+      const panel = document.createElement('article');
+      panel.className = 'course-score-panel';
+      const title = document.createElement('h3');
+      title.textContent = data.getCampus(university.id, campusId)?.name || campusId;
+      panel.append(title);
+      for (const offer of shownOfferings.filter(item => item.campusId === campusId)) {
+        const row = document.createElement('div');
+        row.className = 'course-score-row';
+        const context = document.createElement('span');
+        const modeName = data.source.general.modes.find(item => item.id === offer.modeId)?.name;
+        context.textContent = [ui.period(offer.periodId), modeName].filter(Boolean).join(' · ');
+        const value = document.createElement('strong');
+        value.textContent = Number.isFinite(offer.tuition) && offer.tuition > 0
+          ? currency.format(offer.tuition)
+          : 'Consulte a instituição';
+        row.append(context, value);
+        panel.append(row);
+      }
+      tuitionValues.append(panel);
     }
-    document.querySelector('#course-scores').append(panel);
   }
-  }
-  Object.values(scoreFilters).forEach(select=>select.addEventListener('change',renderScores));
-  document.querySelector('#course-score-filters').addEventListener('submit',event=>{event.preventDefault();renderScores();});
-  document.querySelector('#course-score-clear').addEventListener('click',()=>{Object.values(scoreFilters).forEach(select=>{select.value='';});renderScores();});
-  if(selectedOffering)scoreFilters.campus.value=selectedOffering.campusId;
-  for(const [key,select] of Object.entries(scoreFilters)){
-    const saved=params.get(`nota-${key}`);
-    if(saved!==null && [...select.children].some(option=>option.value===saved))select.value=saved;
-  }
-  renderScores();
   const officialLinks = new Map();
   for (const offer of shownOfferings) {
     const url = ui.safeUrl(offer.courseWebsiteUrl);
@@ -190,18 +219,28 @@
   links.closest('section').hidden = !links.childElementCount;
   for (const element of document.querySelectorAll('[data-icon]')) element.innerHTML = icon(element.dataset.icon);
   const save = document.querySelector('#course-save');
-  const key = window.ToDentroAuth.storageKey('to-dentro-saved-courses');
+  const accountData = () => import('../../../services/user-saved-data.js');
   const id = selectedOffering?.id || `${university.id}:${course.value}`;
   let saved = [];
-  try { const value = JSON.parse(localStorage.getItem(key) || '[]'); if (Array.isArray(value)) saved = value.filter(item => typeof item === 'string'); } catch { /* Armazenamento indisponível. */ }
+  const status = document.querySelector('#course-status');
+  if (window.ToDentroAuth.isAuthenticated()) {
+    try { saved = await (await accountData()).getSavedList('courses'); }
+    catch { status.textContent = 'Não foi possível carregar seus cursos salvos.'; }
+  }
   function updateSave() { const active = window.ToDentroAuth.isAuthenticated() && saved.includes(id); save.setAttribute('aria-pressed', String(active)); save.setAttribute('aria-label', active ? 'Remover curso dos salvos' : 'Salvar curso'); }
-  save.addEventListener('click', () => {
+  save.addEventListener('click', async () => {
     if (!window.ToDentroAuth.requireLogin('Entre para salvar este curso.')) return;
-    saved = saved.includes(id) ? saved.filter(item => item !== id) : [...saved, id];
-    let persisted = true;
-    try { localStorage.setItem(key, JSON.stringify(saved)); } catch { persisted = false; }
-    updateSave();
-    document.querySelector('#course-status').textContent = persisted ? (saved.includes(id) ? 'Curso salvo!' : 'Curso removido dos salvos.') : 'Alteração válida apenas nesta visita; não foi possível salvar no navegador.';
+    save.disabled = true;
+    try {
+      saved = await (await accountData()).updateSavedList('courses', current => current.includes(id)
+        ? current.filter(item => item !== id) : [...current, id]);
+      updateSave();
+      status.textContent = saved.includes(id) ? 'Curso salvo!' : 'Curso removido dos salvos.';
+    } catch {
+      status.textContent = 'Não foi possível atualizar seus cursos salvos. Tente novamente.';
+    } finally {
+      save.disabled = false;
+    }
   });
   updateSave(); save.hidden = false;
   document.querySelector('#course-content').hidden = false;

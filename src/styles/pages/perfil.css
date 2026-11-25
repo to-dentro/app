@@ -40,3 +40,53 @@
 .profile-preferences-card p + p { margin-top: var(--space-3); }
 .profile-preferences-card span { font-weight: var(--font-weight-bold); }
 .profile-page button:disabled { opacity: 1; cursor: default; filter: none; }
+
+.profile-vocational-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-blue);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.profile-vocational-card:hover { border-color: var(--color-ink); }
+
+.profile-vocational-icon,
+.profile-vocational-arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--color-blue);
+  color: var(--color-ink);
+  font-size: 25px;
+}
+
+.profile-vocational-arrow {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  font-size: 22px;
+}
+
+.profile-vocational-content {
+  display: grid;
+  gap: 4px;
+}
+
+.profile-vocational-content h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-heading);
+}
+
+.profile-vocational-content p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}

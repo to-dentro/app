@@ -101,6 +101,18 @@
   margin: 0;
 }
 
+.home-search button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  align-self: stretch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
 .home-shortcuts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -178,3 +190,57 @@
   background: rgb(18 50 75 / 40%);
 }
 
+
+#home-vocational-courses-title {
+  margin: 10px 0 5px;
+  font-size: 14px;
+}
+
+.vocational-carousel {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(112px, 43%, 170px);
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 4px 4px 8px;
+}
+
+.vocational-carousel::-webkit-scrollbar { display: none; }
+
+.vocational-carousel li { scroll-snap-align: start; }
+
+.vocational-carousel a {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-height: 46px;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-blue);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.vocational-carousel a:hover { border-color: var(--color-ink); }
+
+.vocational-course-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 8px;
+  background: var(--color-blue);
+  color: var(--color-ink);
+  font-size: 16px;
+}

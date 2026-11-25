@@ -16,6 +16,7 @@
 .quiz-question p { margin: 9px 0 0; font-size: 15px; line-height: 1.4; color: var(--color-text-muted); }
 .quiz-options { display: grid; gap: 9px; margin: 16px 6px 15px 0; }
 .quiz-option { display: flex; align-items: center; gap: 9px; min-height: 52px; padding: 12px 15px; border: 1px solid transparent; border-radius: 19px; background: var(--color-surface); font-size: 15px; cursor: pointer; }
+.quiz-text { width: 100%; font: inherit; color: var(--color-text); border-color: var(--color-blue); cursor: text; resize: vertical; }
 .quiz-option input { appearance: none; display: grid; place-content: center; width: 18px; height: 18px; flex-shrink: 0; margin: 0; border: 1px solid var(--color-blue); border-radius: 5px; background: var(--color-blue); cursor: pointer; }
 .quiz-option input:checked { background: var(--color-ink); border-color: var(--color-ink); }
 .quiz-option input:checked::after { content: ''; width: 8px; height: 5px; border-left: 2px solid var(--color-white); border-bottom: 2px solid var(--color-white); transform: translateY(-1px) rotate(-45deg); }

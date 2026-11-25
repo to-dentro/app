@@ -72,7 +72,7 @@
         <ul id="course-entry" class="course-entry"></ul>
       </section>
 
-      <section class="course-cutoff blue" aria-labelledby="cutoff-title">
+      <section class="course-cutoff blue" aria-labelledby="cutoff-title" hidden>
         <div class="course-heading">
           <span data-icon="chart"></span>
           <h2 id="cutoff-title">Nota de corte</h2>
@@ -107,6 +107,15 @@
         <div class="course-cutoff-actions">
           <a id="course-cutoff-link" class="button button-ink">Consulta detalhada →</a>
         </div>
+      </section>
+
+      <section class="course-cutoff blue" id="course-tuition" aria-labelledby="tuition-title" hidden>
+        <div class="course-heading">
+          <span data-icon="wallet"></span>
+          <h2 id="tuition-title">Mensalidade</h2>
+        </div>
+        <p id="course-tuition-note">Valores de referência por campus e turno. Confirme no site oficial da instituição.</p>
+        <div id="course-tuition-values" class="course-scores"></div>
       </section>
 
       <section class="course-section" aria-labelledby="official-title">

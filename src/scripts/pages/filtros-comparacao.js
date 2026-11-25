@@ -6,14 +6,16 @@
   const params=new URLSearchParams(location.search),course=document.querySelector('#comparison-course'),form=document.querySelector('#comparison-form');
   const selectedList=document.querySelector('#comparison-selected'),status=document.querySelector('#comparison-builder-status');
   const fields=Object.fromEntries([['universidade','university'],['campus','campus'],['turno','shift'],['processo','process'],['edicao','year'],['modalidade','category'],['fase','stage']].map(([key,id])=>[key,document.querySelector('#comparison-'+id)]));
-  const catalog=data.views.courseCatalog.courses.filter(item=>data.getScores({courseId:item.id}).length);
+  const publicScores = courseId => data.getScores({ courseId })
+    .filter(score => data.getUniversity(score.universityId)?.public);
+  const catalog=data.views.courseCatalog.courses.filter(item=>publicScores(item.id).length);
   course.replaceChildren(new Option('Selecione o curso',''),...catalog.map(item=>new Option(item.name,item.id)));
   const initial=data.getCourse(params.get('curso'));course.value=catalog.some(item=>item.id===initial?.id)?initial.id:'';
   let selected=comparison.readSelection(params),candidates=[];
   const fill=(key,label,entries,preferred)=>{const select=fields[key];select.replaceChildren(new Option(label,''),...entries.map(([value,text])=>new Option(text,String(value))));select.value=entries.some(([value])=>String(value)===preferred)?preferred:'';};
   function rebuild(preferred=Object.fromEntries(Object.entries(fields).map(([key,field])=>[key,field.value]))){
     const allOffers=course.value?data.getOfferings({courseId:course.value}):[];
-    const allScores=course.value?data.getScores({courseId:course.value}):[];
+    const allScores=course.value?publicScores(course.value):[];
     const universityIds=new Set(allScores.map(score=>score.universityId));
     fill('universidade','Selecione a universidade',data.views.universities.filter(item=>universityIds.has(item.id)).map(item=>[item.id,`${item.acronym} · ${item.name}`]),preferred.universidade);
     const offers=allOffers.filter(item=>item.universityId===fields.universidade.value);

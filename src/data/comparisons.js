@@ -5,7 +5,7 @@
     if (!reference) return null;
     const offering = data.getOfferings({ universityId: reference.universityId, courseId }).find(item => item.id === reference.offeringId);
     const university = data.getUniversity(reference.universityId), campus = data.getCampus(reference.universityId, reference.campusId), process = data.getProcess(reference.universityId, reference.processId);
-    if (!offering || !university || !campus || !process || offering.campusId !== reference.campusId) return null;
+    if (!offering || !university?.public || !campus || !process || offering.campusId !== reference.campusId) return null;
     return {
       key: reference.id, id: university.id, university, campus, course: data.getCourse(courseId), offering, offeringId: offering.id, process, reference,
       score: reference.format === 'range' ? null : reference.value, campuses: [campus.label || campus.name], index: 0, site: university.website

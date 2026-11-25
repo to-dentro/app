@@ -9,19 +9,32 @@
   const empty = document.querySelector('#saved-empty');
   const explore = document.querySelector('#saved-explore');
   const categories = [...document.querySelectorAll('[data-category]')];
-  const ids = window.ToDentroSaved.getUniversities();
+  const accountData = () => import('../../../services/user-saved-data.js');
+  const kinds = { universidades: 'universities', cursos: 'courses', comparacoes: 'comparisons' };
+  let request = 0;
   if (params.get('from') === 'perfil') document.querySelector('#saved-back').href = './perfil.html';
-  if (ids.includes(params.get('saved'))) document.querySelector('#saved-message-title').textContent = '✓ Universidade salva!';
-  function render(category) {
+  async function render(category) {
+    const current = ++request;
     list.replaceChildren();
+    empty.hidden = false;
+    empty.textContent = 'Carregando suas escolhas…';
+    for (const button of categories) button.setAttribute('aria-pressed', String(button.dataset.category === category));
+    let saved;
+    try {
+      saved = await (await accountData()).getSavedList(kinds[category]);
+    } catch {
+      if (current === request) empty.textContent = 'Não foi possível carregar seus salvos. Selecione a categoria para tentar novamente.';
+      return;
+    }
+    if (current !== request) return;
     if (category === 'universidades') {
-      for (const id of window.ToDentroSaved.getUniversities()) {
+      if (saved.includes(params.get('saved'))) document.querySelector('#saved-message-title').textContent = '✓ Universidade salva!';
+      for (const id of saved) {
+        if (!window.ToDentroUniversities.some(item => item.id === id)) continue;
         const card = document.createElement('td-university-card'); card.setAttribute('university-id', id); card.setAttribute('variant', 'saved'); list.append(card);
       }
     }
     if (category === 'cursos') {
-      let saved = [];
-      try { const value = JSON.parse(localStorage.getItem(window.ToDentroAuth.storageKey('to-dentro-saved-courses')) || '[]'); if (Array.isArray(value)) saved = value; } catch { /* Armazenamento indisponível. */ }
       for (const id of saved) {
         if (typeof id !== 'string') continue;
         const selection = window.ToDentroData.resolveSavedCourse(id);
@@ -36,8 +49,6 @@
       }
     }
     if (category === 'comparacoes') {
-      let saved = [];
-      try { const value = JSON.parse(localStorage.getItem(window.ToDentroAuth.storageKey('to-dentro-saved-comparisons')) || '[]'); if (Array.isArray(value)) saved = value; } catch { /* Armazenamento indisponível. */ }
       for (const value of saved) {
         if (typeof value !== 'string') continue;
         const state = new URLSearchParams(value);
@@ -57,7 +68,6 @@
     if (category === 'comparacoes') empty.textContent = 'Você ainda não tem comparações salvas.';
     explore.href = category === 'comparacoes' ? './filtros-comparacao.html' : './buscar-universidades.html';
     explore.textContent = category === 'comparacoes' ? 'Montar comparação' : 'Explorar mais instituições';
-    for (const button of categories) button.setAttribute('aria-pressed', String(button.dataset.category === category));
   }
   for (const button of categories) button.addEventListener('click', () => render(button.dataset.category));
   render(['universidades', 'cursos', 'comparacoes'].includes(params.get('categoria')) ? params.get('categoria') : 'universidades');

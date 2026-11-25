@@ -32,6 +32,38 @@ service cloud.firestore {
         && (!preferences.discoveringCourses || preferences.courseIds.size() == 0);
     }
 
+    function validSavedList(items, key) {
+      return !(key in items) || (items[key] is list);
+    }
+
+    function validSavedItems(items) {
+      return items is map
+        && items.keys().hasOnly(['universities', 'courses', 'comparisons', 'reminders', 'calendarDates', 'communityPosts', 'communityReplies'])
+        && validSavedList(items, 'universities')
+        && validSavedList(items, 'courses')
+        && validSavedList(items, 'comparisons')
+        && validSavedList(items, 'reminders')
+        && validSavedList(items, 'calendarDates')
+        && validSavedList(items, 'communityPosts')
+        && validSavedList(items, 'communityReplies');
+    }
+
+    function validVocationalMap(map) {
+      return map is map
+        && map.keys().hasAll(['version', 'profile', 'points', 'highlights', 'valid', 'suggestions', 'message', 'values'])
+        && map.keys().hasOnly(['version', 'profile', 'points', 'highlights', 'valid', 'suggestions', 'message', 'values'])
+        && map.version == 1
+        && map.profile is string && map.profile.size() <= 80
+        && map.points is list && map.points.size() == 6
+        && map.points.toSet().hasOnly([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+        && map.highlights is list && map.highlights.size() <= 6
+        && map.highlights.toSet().hasOnly([0, 1, 2, 3, 4, 5])
+        && map.valid is int && map.valid >= 0 && map.valid <= 30
+        && map.suggestions is list && map.suggestions.size() <= 20
+        && map.message is string && map.message.size() <= 200
+        && map.values is list && map.values.size() <= 3;
+    }
+
     function validProfile(profile, uid) {
       return profile.keys().hasAll([
           'uid', 'displayName', 'email', 'preferences',
@@ -39,8 +71,11 @@ service cloud.firestore {
         ])
         && profile.keys().hasOnly([
           'uid', 'displayName', 'email', 'preferences',
-          'createdAt', 'updatedAt', 'termsAcceptedAt', 'schemaVersion'
+          'createdAt', 'updatedAt', 'termsAcceptedAt', 'schemaVersion',
+          'vocationalMap', 'savedItems'
         ])
+        && (!('vocationalMap' in profile) || validVocationalMap(profile.vocationalMap))
+        && (!('savedItems' in profile) || validSavedItems(profile.savedItems))
         && profile.uid == uid
         && profile.displayName is string
         && profile.displayName.size() > 0 && profile.displayName.size() <= 120
@@ -179,7 +214,7 @@ service cloud.firestore {
       allow update: if ownsProfile(uid)
         && validProfile(request.resource.data, uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['displayName', 'email', 'preferences', 'updatedAt']);
+          .hasOnly(['displayName', 'email', 'preferences', 'updatedAt', 'vocationalMap', 'savedItems']);
 
       allow delete: if ownsProfile(uid);
     }

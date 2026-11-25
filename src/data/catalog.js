@@ -166,8 +166,11 @@
     applyAcademics: groups => {
       const ids = new Set(groups.map(group => group.universityId));
       const merge = (old, records) => freeze([...old.filter(item => !ids.has(item.universityId)), ...records]);
-      const liveCourses = groups.flatMap(group => group.courses.map(course => ({ ...course, value: normalize(course.name), area: course.areaId, degree: course.degree || 'Bacharelado', dataSource: 'firestore' })));
-      const liveCourseIndex = index(liveCourses);
+      const liveCourses = groups.flatMap(group => group.courses.map(course => ({ ...course, value: normalize(course.name), area: course.areaId, degree: course.degree || 'Bacharelado', dataSource: course.dataSource || 'firestore' })));
+      const liveCourseIndex = index(liveCourses.filter(course => course.dataSource !== 'spreadsheet'));
+      for (const course of liveCourses) {
+        if (!courseIndex.has(course.id) && !liveCourseIndex.has(course.id)) liveCourseIndex.set(course.id, course);
+      }
       liveCourses.forEach(course => universityCourses.set(`${course.universityId}:${course.id}`, course));
       courses = freeze([...courses.filter(course => !liveCourseIndex.has(course.id)), ...liveCourseIndex.values()]);
       areas = freeze({ ...areas, ...Object.fromEntries(groups.flatMap(group => group.courses.map(course => [course.areaId, course.area]))) });
@@ -181,7 +184,7 @@
       })));
       campuses = merge(campuses, liveCampuses); campusIndex.clear(); campusAliases.clear();
       campuses.forEach(campus => { campusIndex.set(campus.id, campus);[campus.id, ...(campus.aliases || [])].forEach(alias => campusAliases.set(`${campus.universityId}:${alias}`, campus)); });
-      offerings = merge(offerings, groups.flatMap(group => group.offerings.map(item => ({ ...item, dataSource: 'firestore' }))));
+      offerings = merge(offerings, groups.flatMap(group => group.offerings.map(item => ({ ...item, dataSource: item.dataSource || 'firestore' }))));
       offeringIndex.clear(); offerings.forEach(offering => offeringIndex.set(offering.id, offering));
       processes = merge(processes, groups.flatMap(group => group.processes.map(item => ({ ...item, key: item.id.slice(item.universityId.length + 1), dataSource: 'firestore' }))));
       cutoffScores = merge(cutoffScores, groups.flatMap(group => group.cutoffScores.map(item => ({ ...item, isMock: false, dataSource: 'firestore' }))));

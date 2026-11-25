@@ -24,7 +24,7 @@
             <p>Explore possibilidades e encontre seu caminho.</p>
         </header>
 
-        <section class="vocational-card" aria-labelledby="vocational-title">
+        <section class="vocational-card" id="home-vocational-invitation" aria-labelledby="vocational-title">
             <div class="vocational-invitation">
                 <div>
                     <h2 id="vocational-title">Ainda em dúvida?</h2>
@@ -35,13 +35,29 @@
             <a class="button button-ink" href="./src/pages/teste-vocacional.html">Fazer meu teste</a>
         </section>
 
-        <form class="home-search" role="search" aria-label="Buscar universidades">
-            <label class="search-field" for="university-search">
+        <section class="vocational-card" id="home-vocational-result" aria-labelledby="home-vocational-title" hidden>
+            <div class="vocational-invitation">
+                <div>
+                    <h2 id="home-vocational-title"></h2>
+                    <p>Seu perfil vocacional</p>
+                </div>
+                <img class="vocational-brand-icon" src="./assets/images/brand/icon.svg" alt="" width="76" height="76">
+            </div>
+            <div id="home-vocational-courses" hidden>
+                <h3 id="home-vocational-courses-title">Cursos para explorar</h3>
+                <ul class="vocational-carousel" aria-labelledby="home-vocational-courses-title"></ul>
+            </div>
+            <a class="button button-ink" href="./src/pages/resultado-vocacional.html">Ver meu resultado</a>
+        </section>
+
+        <form class="home-search search-field" action="./src/pages/buscar-universidades.html" method="get"
+            role="search" aria-label="Buscar universidades e cursos">
+            <label class="visually-hidden" for="university-search">Busque universidades ou cursos</label>
+            <button type="submit" aria-label="Buscar">
                 <span class="material-symbols-outlined" aria-hidden="true">search</span>
-                <span class="visually-hidden">Busque universidades ou cursos</span>
-                <input id="university-search" name="busca" type="search" placeholder="Busque universidades, cursos..."
-                    autocomplete="off">
-            </label>
+            </button>
+            <input id="university-search" name="busca" type="search" placeholder="Busque universidades, cursos..."
+                autocomplete="off" enterkeyhint="search">
         </form>
 
         <nav class="home-shortcuts" aria-label="Explore o Tô Dentro">
@@ -74,7 +90,6 @@
         <section id="universidades" class="home-recommendations" aria-labelledby="recommendations-title">
             <h2 id="recommendations-title">Para você</h2>
             <td-university-card university-id="usp" variant="featured"></td-university-card>
-            <p class="search-empty" role="status" hidden>Nenhuma instituição encontrada nesta seleção.</p>
         </section>
 
         <section class="home-next-step" aria-labelledby="next-step-title">
@@ -102,6 +117,9 @@
     <script defer src="./src/scripts/pages/home.js"></script>
     <script defer src="./src/scripts/components/map-links.js"></script>
     <script defer src="./src/scripts/components/external-links.js"></script>
+    <script defer src="./src/data/vocational-questions.js"></script>
+    <script defer src="./src/scripts/services/vocational.js"></script>
+    <script defer src="./src/scripts/components/vocational-summary.js"></script>
 </body>
 
 </html>

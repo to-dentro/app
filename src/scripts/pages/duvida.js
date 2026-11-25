@@ -5,15 +5,14 @@
   const params = new URLSearchParams(location.search);
   const appRoot = new URL('../../', location.href);
   const { createCommunityReply, getCommunityPost, getCommunityReplies } = await import(new URL('services/community.js', appRoot).href);
-  const key = window.ToDentroAuth.storageKey('to-dentro-community-replies');
-  function read(key) {
-    const saved = JSON.parse(localStorage.getItem(key) || '[]');
-    if (!Array.isArray(saved)) throw new Error('Invalid collection');
-    return saved;
-  }
+  const accountData = () => import('../../../services/user-saved-data.js');
   let localPosts = [], localReplies = [];
-  try { localPosts = read(window.ToDentroAuth.storageKey('to-dentro-community-posts')); } catch { /* Manter os exemplos disponíveis. */ }
-  try { localReplies = read(key); } catch { /* Manter as respostas demonstrativas disponíveis. */ }
+  if (window.ToDentroAuth.isAuthenticated()) {
+    try {
+      const { getSavedList } = await accountData();
+      [localPosts, localReplies] = await Promise.all([getSavedList('communityPosts'), getSavedList('communityReplies')]);
+    } catch { /* As perguntas públicas e demonstrativas continuam disponíveis. */ }
+  }
   let post = [...window.ToDentroCommunity, ...localPosts].find(item => item && item.id === params.get('id') && item.category === 'duvidas' && typeof item.title === 'string' && typeof item.text === 'string');
   const localPost = Boolean(post);
   let remoteReplies = [];
@@ -106,7 +105,7 @@
     try {
       if (localPost) {
         const reply = { id: crypto.randomUUID(), questionId: post.id, author: 'Você', initials: 'VC', text: text.value.trim(), source: url, publishedAt: new Date().toISOString() };
-        const latest = read(key); localStorage.setItem(key, JSON.stringify([...latest, reply])); localReplies = [...latest, reply];
+        localReplies = await (await accountData()).updateSavedList('communityReplies', current => [...current, reply]);
       } else {
         const replyId = await createCommunityReply(post.id, { text: text.value, source: url });
         const author = window.ToDentroAuth.user.displayName || 'Estudante';
